@@ -10,6 +10,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/register" element={<Register />} />
         <Route path="/password" element={<Password />} />
         <Route path="/recovery" element={<Recovery />} />
         <Route path="/reset" element={<Reset />} />

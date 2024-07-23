@@ -7,7 +7,7 @@ import { registerValidation } from "../helper/Validate";
 import convertToBase64 from "../helper/convert";
 import styles from "../styles/Username.module.css";
 
-export default function Register() {
+export default function Profile() {
   const [file, setFile] = useState();
 
   const formik = useFormik({
