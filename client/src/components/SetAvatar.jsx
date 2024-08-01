@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import axios from "axios";
 
 const SetAvatar = () => {
@@ -28,7 +28,7 @@ const SetAvatar = () => {
     try {
       await axios.post("http://localhost:5000/api/setAvatar", {
         userId,
-        avatar: selectedAvatar,
+        avatarUrl: selectedAvatar,
       });
       localStorage.removeItem("userId"); // Clean up
       navigate("/login");

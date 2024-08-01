@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
@@ -46,9 +46,12 @@ const Register = () => {
     }
 
     try {
+      // Convert email to lowercase before sending
+      const lowercaseEmail = email.toLowerCase();
+
       const response = await axios.post("http://localhost:5000/api/register", {
         username,
-        email,
+        email: lowercaseEmail,
         password,
         avatarImage: image,
       });
@@ -57,9 +60,13 @@ const Register = () => {
         toast.success("Registration Successful");
         if (response.data.userId) {
           localStorage.setItem("userId", response.data.userId);
-          navigate("/setAvatar");
+          setTimeout(() => {
+            navigate("/setAvatar");
+          }, 800);
         } else {
-          navigate("/login");
+          setTimeout(() => {
+            navigate("/login");
+          }, 800);
         }
       } else {
         toast.error(response.data.error || "Registration failed");
