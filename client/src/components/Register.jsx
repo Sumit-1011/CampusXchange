@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { toast, ToastContainer } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-import "react-toastify/dist/ReactToastify.css";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Ensure this is imported globally
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -144,7 +144,6 @@ const Register = () => {
             Register
           </button>
         </form>
-        <ToastContainer />
       </div>
     </div>
   );

@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const { verifyToken } = require("../middleware/auth"); // Ensure this is correct
+const cloudinary = require("../config/cloudinary");
+const verifyToken = require("../middleware/auth");
 const Product = require("../models/productModel");
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ storage: multer.memoryStorage() }); // Store in memory for Cloudinary upload
 
 // Middleware to check for authentication
 router.use(verifyToken);
@@ -12,7 +13,6 @@ router.use(verifyToken);
 router.post("/products", upload.single("image"), async (req, res) => {
   try {
     const { price, name, purchaseDateMonth, purchaseDateYear } = req.body;
-    const imageUrl = req.file ? req.file.path : "";
 
     if (!price || !name || !purchaseDateMonth || !purchaseDateYear) {
       return res
@@ -20,14 +20,34 @@ router.post("/products", upload.single("image"), async (req, res) => {
         .json({ status: "error", message: "All fields are required" });
     }
 
+    // Upload image to Cloudinary if available
+    let imageUrl = "";
+    if (req.file) {
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream({ resource_type: "image" }, (error, result) => {
+            if (error) {
+              return reject(new Error("Cloudinary upload failed"));
+            }
+            resolve(result);
+          })
+          .end(req.file.buffer);
+      });
+
+      imageUrl = result.secure_url;
+    }
+
     const newProduct = new Product({
       price,
       name,
       purchaseDateMonth,
       purchaseDateYear,
-      image: imageUrl,
-      // You can also set postedBy from the authenticated user
-      postedBy: req.user._id,
+      image: imageUrl, // Image URL or empty string
+      postedBy: {
+        userId: req.user._id, // Ensure this matches your user object structure
+        email: req.user.email, // Ensure this matches your user object structure
+      },
+      isApproved: true, // Default value
     });
 
     await newProduct.save();

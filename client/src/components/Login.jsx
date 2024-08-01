@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Ensure this is imported globally
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -57,10 +57,12 @@ const Login = () => {
             <input
               type="email"
               id="email"
+              name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               required
+              autoComplete="email"
             />
           </div>
           <div className="mb-4">
@@ -73,10 +75,12 @@ const Login = () => {
             <input
               type="password"
               id="password"
+              name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               required
+              autoComplete="current-password"
             />
           </div>
           <button
@@ -86,7 +90,6 @@ const Login = () => {
             Login
           </button>
         </form>
-        <ToastContainer />
       </div>
     </div>
   );

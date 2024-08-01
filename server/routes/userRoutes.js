@@ -35,18 +35,31 @@ router.post("/setAvatar", async (req, res) => {
 });
 
 router.get("/user", async (req, res) => {
-  const token = req.headers.authorization.split(" ")[1];
+  // Extract the token from the Authorization header
+  const token =
+    req.headers.authorization && req.headers.authorization.split(" ")[1];
+
+  // Log the token to debug
+  //console.log("Token received:", token);
+
   if (!token) {
-    return res.json({ status: "error", error: "No token provided" });
+    return res
+      .status(401)
+      .json({ status: "error", error: "No token provided" });
   }
 
   try {
+    // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    //console.log("Decoded token:", decoded); // Log decoded token for debugging
+
+    // Find the user based on the email in the token
     const user = await User.findOne({ email: decoded.email });
     if (!user) {
-      return res.json({ status: "error", error: "User not found" });
+      return res.status(404).json({ status: "error", error: "User not found" });
     }
 
+    // Return user data
     res.json({
       status: "ok",
       user: {
@@ -56,7 +69,8 @@ router.get("/user", async (req, res) => {
       },
     });
   } catch (error) {
-    res.json({ status: "error", error: "Invalid token" });
+    console.error("Token verification error:", error);
+    res.status(401).json({ status: "error", error: "Invalid token" });
   }
 });
 
@@ -141,8 +155,8 @@ router.post("/login", async (req, res) => {
           name: user.username, // Adjust if needed
           email: user.email,
         },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" } // Optional: Set token expiry
+        process.env.JWT_SECRET
+        // { expiresIn: "1h" } // Optional: Set token expiry
       );
       return res.json({ status: "ok", token });
     } else {

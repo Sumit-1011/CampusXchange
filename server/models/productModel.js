@@ -19,16 +19,22 @@ const productSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    required: true,
+    required: true, // Make image optional
   },
   isApproved: {
     type: Boolean,
-    default: true, // Set default value to true
+    default: true,
   },
   postedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true, // Ensure this matches your use case
+    },
+    email: {
+      type: String,
+      required: true, // Ensure this matches your use case
+    },
   },
 });
 

@@ -1,6 +1,6 @@
-// PostProduct.jsx
 import { useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify"; // Import toast from react-toastify
 
 const PostProduct = ({ setIsPostingProduct }) => {
   const [productDetails, setProductDetails] = useState({
@@ -44,12 +44,13 @@ const PostProduct = ({ setIsPostingProduct }) => {
       );
 
       if (response.data.status === "ok") {
+        toast.success("Product posted successfully");
         setIsPostingProduct(false);
       } else {
-        console.error("Error posting product", response.data);
+        toast.error("Error posting product: " + response.data.message);
       }
     } catch (error) {
-      console.error("Error posting product", error);
+      toast.error("Error posting product: " + error.message);
     }
   };
 
@@ -64,6 +65,7 @@ const PostProduct = ({ setIsPostingProduct }) => {
           onChange={handleFileChange}
           className="w-full p-2 rounded mb-4"
           required
+          autoComplete="off"
         />
         <input
           type="text"
@@ -73,6 +75,7 @@ const PostProduct = ({ setIsPostingProduct }) => {
           onChange={handleInputChange}
           className="w-full p-2 rounded mb-4"
           required
+          autoComplete="off"
         />
         <input
           type="text"
@@ -82,6 +85,7 @@ const PostProduct = ({ setIsPostingProduct }) => {
           onChange={handleInputChange}
           className="w-full p-2 rounded mb-4"
           required
+          autoComplete="off"
         />
         <div className="flex justify-between mb-4">
           <input
@@ -92,6 +96,7 @@ const PostProduct = ({ setIsPostingProduct }) => {
             onChange={handleInputChange}
             className="w-1/2 p-2 rounded mr-2"
             required
+            autoComplete="off"
           />
           <input
             type="text"
@@ -101,6 +106,7 @@ const PostProduct = ({ setIsPostingProduct }) => {
             onChange={handleInputChange}
             className="w-1/2 p-2 rounded"
             required
+            autoComplete="off"
           />
         </div>
         <button
