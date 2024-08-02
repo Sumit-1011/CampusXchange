@@ -9,24 +9,7 @@ const Home = () => {
     email: "",
     avatarImage: "",
   });
-
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      image: "/path/to/image1.jpg",
-      name: "Product 1",
-      usedFor: "10 days",
-      postedBy: "User1",
-    },
-    {
-      id: 2,
-      image: "/path/to/image2.jpg",
-      name: "Product 2",
-      usedFor: "20 days",
-      postedBy: "User2",
-    },
-    // Add more products as needed
-  ]);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -52,7 +35,25 @@ const Home = () => {
       }
     };
 
+    const fetchProducts = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get("http://localhost:5000/api/products", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.data.status === "ok") {
+          setProducts(response.data.products);
+        } else {
+          console.error("Error fetching products", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching products", error);
+      }
+    };
+
     fetchUserData();
+    fetchProducts();
   }, [navigate]);
 
   const handleSignOut = () => {
@@ -85,15 +86,19 @@ const Home = () => {
       </div>
       <div className="p-4 flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {products.map((product) => (
-          <div key={product.id} className="bg-white p-4 rounded shadow-md">
+          <div key={product._id} className="bg-white p-4 rounded shadow-md">
             <img
               src={product.image}
               alt={product.name}
               className="w-full h-32 object-cover mb-2"
             />
             <h2 className="text-xl font-bold">{product.name}</h2>
-            <p>Used for: {product.usedFor}</p>
-            <p>Posted by: {product.postedBy}</p>
+            <p>
+              Used for: {product.purchaseDateMonth}/{product.purchaseDateYear}
+            </p>
+            <p>Posted by: {product.postedBy.userId.username}</p>{" "}
+            {/* Display the username of the user */}
+            <p className="text-lg font-bold">Price: {product.price}</p>
           </div>
         ))}
       </div>

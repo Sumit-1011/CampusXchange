@@ -31,10 +31,6 @@ const productSchema = new mongoose.Schema({
       ref: "User",
       required: true, // Ensure this matches your use case
     },
-    email: {
-      type: String,
-      required: true, // Ensure this matches your use case
-    },
   },
 });
 
