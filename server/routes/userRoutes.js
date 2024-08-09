@@ -3,6 +3,8 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const Product = require("../models/productModel"); // Import Product model
+const auth = require("../middleware/auth"); // Import auth middleware
 const axios = require("axios");
 
 require("dotenv").config();
@@ -20,7 +22,7 @@ router.post("/setAvatar", async (req, res) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return res.json({ status: "error", error: "User not found" });
+      return res.status(404).json({ status: "error", error: "User not found" });
     }
 
     user.isAvatarImageSet = true;
@@ -34,13 +36,10 @@ router.post("/setAvatar", async (req, res) => {
   }
 });
 
+// Get authenticated user data
 router.get("/user", async (req, res) => {
-  // Extract the token from the Authorization header
   const token =
     req.headers.authorization && req.headers.authorization.split(" ")[1];
-
-  // Log the token to debug
-  //console.log("Token received:", token);
 
   if (!token) {
     return res
@@ -49,17 +48,13 @@ router.get("/user", async (req, res) => {
   }
 
   try {
-    // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    //console.log("Decoded token:", decoded); // Log decoded token for debugging
 
-    // Find the user based on the email in the token
     const user = await User.findOne({ email: decoded.email });
     if (!user) {
       return res.status(404).json({ status: "error", error: "User not found" });
     }
 
-    // Return user data
     res.json({
       status: "ok",
       user: {
@@ -74,19 +69,17 @@ router.get("/user", async (req, res) => {
   }
 });
 
-router.get("/avatars", async (req, res) => {
-  const apiKey = process.env.MULTI_AVATAR_API; // API key from environment variable
+// Get products posted by the authenticated user
+router.get("/user/products", auth, async (req, res) => {
   try {
-    const avatarPromises = Array.from({ length: 5 }).map((_, index) =>
-      axios.get(
-        `https://api.multiavatar.com/${Math.random()}.svg?apikey=${apiKey}`
-      )
-    );
-    const avatarResponses = await Promise.all(avatarPromises);
-    const avatarUrls = avatarResponses.map((response) => response.config.url);
-    res.json(avatarUrls);
+    const userId = req.user.id;
+
+    const products = await Product.find({ "postedBy.userId": userId });
+
+    res.status(200).json({ status: "ok", products });
   } catch (error) {
-    res.status(500).json({ error: "Error fetching avatars" });
+    console.error("Error fetching user products:", error);
+    res.status(500).json({ status: "error", message: "Server Error" });
   }
 });
 
@@ -95,19 +88,16 @@ router.post("/register", async (req, res) => {
   try {
     const { username, email, password, avatarImage } = req.body;
 
-    // Validate password
     if (!validatePassword(password)) {
-      return res.json({
+      return res.status(400).json({
         status: "error",
         error:
           "Password must be 6-15 characters long, contain special characters, and include at least one lowercase and one uppercase character.",
       });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new user
     const newUser = new User({
       username,
       email,
@@ -116,23 +106,17 @@ router.post("/register", async (req, res) => {
       avatarImage: avatarImage || "",
     });
 
-    // Save the user to the database
     await newUser.save();
 
-    if (!avatarImage) {
-      return res.json({ status: "ok", userId: newUser._id });
-    }
-
-    res.json({ status: "ok" });
+    res.json({ status: "ok", userId: newUser._id });
   } catch (err) {
-    // Handle duplicate email or username error
     if (err.code === 11000) {
-      return res.json({
+      return res.status(409).json({
         status: "error",
         error: "Duplicate email or username",
       });
     }
-    res.json({ status: "error", error: "Registration failed" });
+    res.status(500).json({ status: "error", error: "Registration failed" });
   }
 });
 
@@ -142,7 +126,7 @@ router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.json({
+      return res.status(401).json({
         status: "error",
         message: "Invalid email or password",
       });
@@ -152,7 +136,7 @@ router.post("/login", async (req, res) => {
     if (isPasswordValid) {
       const token = jwt.sign(
         {
-          name: user.username, // Adjust if needed
+          name: user.username,
           email: user.email,
         },
         process.env.JWT_SECRET
@@ -160,14 +144,33 @@ router.post("/login", async (req, res) => {
       );
       return res.json({ status: "ok", token });
     } else {
-      return res.json({
+      return res.status(401).json({
         status: "error",
         message: "Invalid email or password",
       });
     }
   } catch (error) {
     console.error(error);
-    return res.json({ status: "error", message: "An error occurred" });
+    return res
+      .status(500)
+      .json({ status: "error", message: "An error occurred" });
+  }
+});
+
+// Fetch avatars
+router.get("/avatars", async (req, res) => {
+  const apiKey = process.env.MULTI_AVATAR_API; // API key from environment variable
+  try {
+    const avatarPromises = Array.from({ length: 5 }).map(() =>
+      axios.get(
+        `https://api.multiavatar.com/${Math.random()}.svg?apikey=${apiKey}`
+      )
+    );
+    const avatarResponses = await Promise.all(avatarPromises);
+    const avatarUrls = avatarResponses.map((response) => response.config.url);
+    res.json(avatarUrls);
+  } catch (error) {
+    res.status(500).json({ error: "Error fetching avatars" });
   }
 });
 

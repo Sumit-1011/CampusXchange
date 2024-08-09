@@ -14,6 +14,7 @@ export default function App() {
     <Router>
       <ToastContainer />
       <Routes>
+        <Route path="*" element={<PublicRoute element={<Login />} />} />
         <Route path="/login" element={<PublicRoute element={<Login />} />} />
         <Route
           path="/register"
@@ -28,6 +29,7 @@ export default function App() {
           element={<AuthenticatedRoute element={<Profile />} />}
         />
         <Route path="/" element={<AuthenticatedRoute element={<Home />} />} />
+        <Route path="*" element={<AuthenticatedRoute element={<Home />} />} />
       </Routes>
     </Router>
   );

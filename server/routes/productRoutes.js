@@ -24,18 +24,25 @@ router.post("/products", upload.single("image"), async (req, res) => {
     // Upload image to Cloudinary if available
     let imageUrl = "";
     if (req.file) {
-      const result = await new Promise((resolve, reject) => {
-        cloudinary.uploader
-          .upload_stream({ resource_type: "image" }, (error, result) => {
-            if (error) {
-              return reject(new Error("Cloudinary upload failed"));
-            }
-            resolve(result);
-          })
-          .end(req.file.buffer);
-      });
+      try {
+        const result = await new Promise((resolve, reject) => {
+          cloudinary.uploader
+            .upload_stream({ resource_type: "image" }, (error, result) => {
+              if (error) {
+                return reject(new Error("Cloudinary upload failed"));
+              }
+              resolve(result);
+            })
+            .end(req.file.buffer);
+        });
 
-      imageUrl = result.secure_url;
+        imageUrl = result.secure_url;
+      } catch (error) {
+        console.error("Error uploading to Cloudinary:", error);
+        return res
+          .status(500)
+          .json({ status: "error", message: "Image upload failed" });
+      }
     }
 
     const newProduct = new Product({
@@ -51,9 +58,11 @@ router.post("/products", upload.single("image"), async (req, res) => {
     });
 
     await newProduct.save();
-    res
-      .status(200)
-      .json({ status: "ok", message: "Product posted successfully" });
+    res.status(200).json({
+      status: "ok",
+      message: "Product posted successfully",
+      product: newProduct,
+    });
   } catch (error) {
     console.error("Error posting product:", error);
     res.status(500).json({ status: "error", message: "Server error" });
