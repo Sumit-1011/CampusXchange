@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import UserProduct from "./UserProduct";
 import PostProduct from "./PostProduct";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState({
-    username: "",
-    email: "",
-    avatarImage: "",
-  });
+  const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
   const [isPostingProduct, setIsPostingProduct] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [selectedSection, setSelectedSection] = useState("Profile"); // Track the selected section
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -34,6 +33,8 @@ const Profile = () => {
       } catch (error) {
         console.error("Error fetching user data", error);
         navigate("/login");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -46,10 +47,8 @@ const Profile = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        //console.log("Fetched Products:", response.data.products);
 
         if (response.data.status === "ok") {
-          setProducts([]);
           setProducts(response.data.products);
         } else {
           console.error("Error fetching user products", response.data);
@@ -63,14 +62,13 @@ const Profile = () => {
     fetchUserProducts();
   }, [navigate]);
 
-  // This function will be passed to PostProduct to update the products state
   const handleProductPosted = (newProduct) => {
     if (!newProduct || !newProduct._id) {
       console.error("Posted product is undefined or invalid:", newProduct);
-      return; // Skip adding the undefined or invalid product
+      return;
     }
     setProducts((prevProducts) => [...prevProducts, newProduct]);
-    setIsPostingProduct(false); // Close the PostProduct form after posting
+    setIsPostingProduct(false);
   };
 
   const handleSignOut = () => {
@@ -97,9 +95,16 @@ const Profile = () => {
     }
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <div>Error loading user data</div>;
+  }
+
   return (
     <div className="min-h-screen flex bg-gray-100 relative">
-      {/* Overlay for PostProduct form when isPostingProduct is true */}
       {isPostingProduct && (
         <div className="fixed inset-0 z-10 bg-black bg-opacity-50 flex items-center justify-center">
           <PostProduct
@@ -108,8 +113,14 @@ const Profile = () => {
           />
         </div>
       )}
-      {/* Left side - User information and other options */}
+
       <div className="w-1/4 bg-white p-6 rounded shadow-md flex flex-col items-center h-screen">
+        <button
+          onClick={() => navigate("/")}
+          className="mb-4 w-full text-left flex items-center justify-center"
+        >
+          <img src="cxclogo.png" alt="Home" className="h-20 w-60" />
+        </button>
         {user.avatarImage && (
           <img
             src={user.avatarImage}
@@ -120,19 +131,28 @@ const Profile = () => {
         <p className="text-xl mb-2">Username: {user.username}</p>
         <p className="text-xl mb-4">Email: {user.email}</p>
         <button
-          onClick={() => navigate("/")} // Add this onClick handler to navigate to the home page
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4 w-full text-left"
+          onClick={() => setSelectedSection("Profile")}
+          className={`bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4 w-full text-left ${
+            selectedSection === "Profile" ? "bg-yellow-700" : ""
+          }`}
         >
-          Home
+          Profile
         </button>
-        <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4 w-full text-left">
+        <button
+          onClick={() => setSelectedSection("Your Products")}
+          className={`bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4 w-full text-left ${
+            selectedSection === "Your Products" ? "bg-gray-700" : ""
+          }`}
+        >
           Your Products
         </button>
-        <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4 w-full text-left">
+        <button
+          onClick={() => setSelectedSection("Your Favorites")}
+          className={`bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4 w-full text-left ${
+            selectedSection === "Your Favorites" ? "bg-gray-700" : ""
+          }`}
+        >
           Your Favorites
-        </button>
-        <button className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4 w-full text-left">
-          Feedback
         </button>
         <button
           onClick={handleDeleteAccount}
@@ -148,70 +168,57 @@ const Profile = () => {
         </button>
       </div>
 
-      {/* Right side - Display user's products */}
       <div
         className={`w-3/4 flex-1 flex flex-col p-6 overflow-hidden ${
           isPostingProduct ? "blur-sm" : ""
         }`}
       >
-        {/* Top 1/3rd with yellow background and space for search bar and Post Product button */}
-        <div className="h-1/3 bg-yellow-400 flex items-center justify-between px-6">
-          {/* Search Bar on the left side */}
-          <input
-            type="text"
-            placeholder="Search Products"
-            className="w-1/2 p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+        {/* Display different content based on the selected section */}
+        {selectedSection === "Profile" && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-2xl">Welcome to your profile!</p>
+          </div>
+        )}
+        {selectedSection === "Your Products" && (
+          <div className="flex flex-col h-full">
+            {/* Top 1/3rd with yellow background and space for search bar and Post Product button */}
+            <div className="h-1/3 bg-yellow-400 flex items-center justify-between px-6">
+              {/* Search Bar on the left side */}
+              <input
+                type="text"
+                placeholder="Search Products"
+                className="w-1/2 p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
 
-          {/* Post a Product button on the right side */}
-          <button
-            onClick={() => setIsPostingProduct(true)}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >
-            Post a Product
-          </button>
-        </div>
+              {/* Post a Product button on the right side */}
+              <button
+                onClick={() => setIsPostingProduct(true)}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              >
+                Post a Product
+              </button>
+            </div>
 
-        {/* Bottom 2/3rd with product listing */}
-        <div className="h-2/3 mt-4 overflow-y-auto">
-          <div className="w-full">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {products.length > 0 ? (
-                products
-                  .filter((product) => product && product._id)
-                  .map((product) => {
-                    //console.log("Product:", product);
-                    return (
-                      <div
-                        key={product._id}
-                        className="bg-white p-4 rounded shadow-md"
-                      >
-                        <img
-                          src={product?.image || "chair.jpg"}
-                          alt={product?.name || "Product"}
-                          className="w-full h-32 object-cover mb-2"
-                        />
-                        <h2 className="text-xl font-bold">
-                          {product?.name || "Unnamed Product"}
-                        </h2>
-                        <p>
-                          Used for: {product?.purchaseDateMonth || "N/A"}/
-                          {product?.purchaseDateYear || "N/A"}
-                        </p>
-                        <p className="text-lg font-bold">
-                          Price: {product?.price || "N/A"}
-                        </p>
-                      </div>
-                    );
-                  })
-              ) : (
-                <p className="text-center text-lg">
-                  You have not posted any products yet.
-                </p>
-              )}
+            {/* Bottom 2/3rd with product listing */}
+            <div className="h-2/3 mt-4 overflow-y-auto">
+              <UserProduct
+                products={products}
+                currentUser={user}
+                hidePostedBy={true}
+                onDeleteProduct={(productId) => {
+                  setProducts((prevProducts) =>
+                    prevProducts.filter((product) => product._id !== productId)
+                  );
+                }}
+              />
             </div>
           </div>
-        </div>
+        )}
+        {selectedSection === "Your Favorites" && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-2xl">Here are your favorite products!</p>
+          </div>
+        )}
       </div>
     </div>
   );

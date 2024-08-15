@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import PostProduct from "./PostProduct"; // Import the PostProduct component
+import PostProduct from "./PostProduct";
+import UserProduct from "./UserProduct";
+import Shimmer from "./Shimmer";
 
 const Home = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState({
-    username: "",
-    email: "",
-    avatarImage: "",
-  });
+  const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
-  const [isPostingProduct, setIsPostingProduct] = useState(false); // State to toggle product posting form
+  const [isPostingProduct, setIsPostingProduct] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -37,7 +36,12 @@ const Home = () => {
       }
     };
 
+    fetchUserData();
+  }, [navigate]);
+
+  useEffect(() => {
     const fetchProducts = async () => {
+      if (!user) return;
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get("http://localhost:5000/api/products", {
@@ -54,12 +58,13 @@ const Home = () => {
         }
       } catch (error) {
         console.error("Error fetching products", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchUserData();
     fetchProducts();
-  }, [navigate, user._id]);
+  }, [user]);
 
   const handleProductPosted = (newProduct) => {
     if (
@@ -67,10 +72,10 @@ const Home = () => {
       !newProduct._id ||
       newProduct.postedBy.userId._id === user._id
     ) {
-      return; // Skip adding the undefined or invalid product
+      return;
     }
-    setProducts((prevProducts) => [...prevProducts, newProduct]);
-    setIsPostingProduct(false); // Close the PostProduct form after posting
+    setProducts(products);
+    setIsPostingProduct(false);
   };
 
   return (
@@ -94,11 +99,11 @@ const Home = () => {
             >
               Post a Product
             </button>
-            {user.avatarImage && (
+            {user?.avatarImage && (
               <img
                 src={user.avatarImage}
                 alt="User Profile"
-                className="w-8 h-8 rounded-full cursor-pointer mr-4"
+                className="w-10 h-10 rounded-full cursor-pointer mr-4"
                 onClick={() => navigate("/profile")}
               />
             )}
@@ -106,26 +111,24 @@ const Home = () => {
         </div>
       </div>
 
-      <div
-        className={`p-4 flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 ${
-          isPostingProduct ? "blur" : ""
-        }`}
-      >
-        {products.map((product) => (
-          <div key={product._id} className="bg-white p-4 rounded shadow-md">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full h-32 object-cover mb-2"
-            />
-            <h2 className="text-xl font-bold">{product.name}</h2>
-            <p>
-              Used for: {product.purchaseDateMonth}/{product.purchaseDateYear}
-            </p>
-            <p>Posted by: {product.postedBy.userId.username}</p>
-            <p className="text-lg font-bold">Price: {product.price}</p>
-          </div>
-        ))}
+      <div className={`p-4 flex-1 ${isPostingProduct ? "blur" : ""}`}>
+        {loading ? (
+          Array(8)
+            .fill(0)
+            .map((_, index) => <Shimmer key={index} />)
+        ) : user && products.length > 0 ? (
+          <UserProduct
+            products={products}
+            currentUser={user}
+            onDeleteProduct={(productId) =>
+              setProducts((prevProducts) =>
+                prevProducts.filter((product) => product._id !== productId)
+              )
+            }
+          />
+        ) : (
+          <p>No products available</p>
+        )}
       </div>
     </div>
   );

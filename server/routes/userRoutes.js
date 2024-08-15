@@ -58,6 +58,7 @@ router.get("/user", async (req, res) => {
     res.json({
       status: "ok",
       user: {
+        _id: user._id,
         username: user.username,
         email: user.email,
         avatarImage: user.avatarImage,

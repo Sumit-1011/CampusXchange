@@ -83,4 +83,51 @@ router.get("/products", async (req, res) => {
   }
 });
 
+// Handle product deletion
+router.delete("/products/:id", async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const userId = req.user._id; // Ensure this matches your user object structure
+
+    // Find the product by ID
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Product not found" });
+    }
+
+    // Check if the product was posted by the current user
+    if (product.postedBy.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ status: "error", message: "Unauthorized" });
+    }
+
+    // Delete the image from Cloudinary if it exists
+    if (product.image) {
+      try {
+        const imageId = product.image.split("/").pop().split(".")[0]; // Extract the public ID
+        await cloudinary.uploader.destroy(imageId);
+      } catch (error) {
+        console.error("Error deleting image from Cloudinary:", error);
+        return res
+          .status(500)
+          .json({ status: "error", message: "Image deletion failed" });
+      }
+    }
+
+    // Delete the product from the database
+    await product.deleteOne();
+
+    res.status(200).json({
+      status: "ok",
+      message: "Product deleted successfully",
+      productId,
+    });
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+});
+
 module.exports = router;
