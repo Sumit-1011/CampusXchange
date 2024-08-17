@@ -3,7 +3,9 @@ import { Navigate } from "react-router-dom";
 const AuthenticatedRoute = ({ element }) => {
   const token = localStorage.getItem("token");
 
-  if (!token) {
+  const userId = localStorage.getItem("userId");
+
+  if (!token && !userId) {
     return <Navigate to="/login" />;
   }
 

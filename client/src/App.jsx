@@ -21,7 +21,7 @@ export default function App() {
           element={<PublicRoute element={<Register />} />}
         />
         <Route
-          path="/setAvatar"
+          path="/setavatar"
           element={<AuthenticatedRoute element={<SetAvatar />} />}
         />
         <Route

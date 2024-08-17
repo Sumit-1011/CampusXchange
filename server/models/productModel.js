@@ -21,6 +21,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true, // Make image optional
   },
+  cloudinaryPublicId: {
+    type: String, // Store the public_id of the image
+    required: false,
+  },
   isApproved: {
     type: Boolean,
     default: true,

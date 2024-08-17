@@ -27,6 +27,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  cloudinaryPublicId: {
+    type: String, // The public_id for the avatar image on Cloudinary
+    default: "",
+  },
+  dateJoined: {
+    type: Date,
+    default: Date.now, // Sets the default value to the current date and time
+  },
 });
 
 module.exports = mongoose.model("User", userSchema); // Ensure model name is "User"

@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import UserProduct from "./UserProduct";
 import PostProduct from "./PostProduct";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -84,13 +86,22 @@ const Profile = () => {
         return;
       }
 
-      await axios.delete("http://localhost:5000/api/user", {
+      const response = await axios.delete("http://localhost:5000/api/user", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      localStorage.removeItem("token");
-      navigate("/register");
+      if (response.status === 200) {
+        // Show success toast
+        toast.success("Account deleted successfully");
+        localStorage.removeItem("token");
+        navigate("/register");
+      } else {
+        // Show error toast
+        toast.error("Failed to delete account");
+      }
     } catch (error) {
+      // Show error toast for any other errors
+      toast.error("Error deleting account");
       console.error("Error deleting account", error);
     }
   };
@@ -175,10 +186,27 @@ const Profile = () => {
       >
         {/* Display different content based on the selected section */}
         {selectedSection === "Profile" && (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-2xl">Welcome to your profile!</p>
+          <div className="flex flex-col items-center justify-center h-full">
+            {user.avatarImage && (
+              <img
+                src={user.avatarImage}
+                alt="User Avatar"
+                className="w-24 h-24 rounded-full mb-4"
+              />
+            )}
+            <p className="text-3xl font-bold mb-2">{user.username}</p>
+            <p className="text-xl text-gray-600 mb-2">{user.email}</p>
+            <p className="text-sm text-gray-500 mb-6">
+              {`Joined on ${new Date(user.dateJoined).toLocaleDateString()}`}
+            </p>
+            <div className="mt-auto">
+              <p className="text-lg font-medium">
+                {`You have posted ${products.length} product(s)`}
+              </p>
+            </div>
           </div>
         )}
+
         {selectedSection === "Your Products" && (
           <div className="flex flex-col h-full">
             {/* Top 1/3rd with yellow background and space for search bar and Post Product button */}

@@ -5,13 +5,14 @@ const cloudinary = require("../config/cloudinary");
 const verifyToken = require("../middleware/auth");
 const Product = require("../models/productModel");
 const User = require("../models/userModel");
+const auth = require("../middleware/auth");
 const upload = multer({ storage: multer.memoryStorage() }); // Store in memory for Cloudinary upload
 
 // Middleware to check for authentication
 router.use(verifyToken);
 
 // Handle product posting
-router.post("/products", upload.single("image"), async (req, res) => {
+router.post("/products", auth, upload.single("image"), async (req, res) => {
   try {
     const { price, name, purchaseDateMonth, purchaseDateYear } = req.body;
 
@@ -23,6 +24,7 @@ router.post("/products", upload.single("image"), async (req, res) => {
 
     // Upload image to Cloudinary if available
     let imageUrl = "";
+    let cloudinaryPublicId = "";
     if (req.file) {
       try {
         const result = await new Promise((resolve, reject) => {
@@ -37,6 +39,7 @@ router.post("/products", upload.single("image"), async (req, res) => {
         });
 
         imageUrl = result.secure_url;
+        cloudinaryPublicId = result.public_id;
       } catch (error) {
         console.error("Error uploading to Cloudinary:", error);
         return res
@@ -50,11 +53,12 @@ router.post("/products", upload.single("image"), async (req, res) => {
       name,
       purchaseDateMonth,
       purchaseDateYear,
-      image: imageUrl, // Image URL or empty string
+      image: imageUrl,
+      cloudinaryPublicId: cloudinaryPublicId, // Store the public_id here
       postedBy: {
-        userId: req.user._id, // Ensure this matches your user object structure
+        userId: req.user._id,
       },
-      isApproved: true, // Default value
+      isApproved: true,
     });
 
     await newProduct.save();

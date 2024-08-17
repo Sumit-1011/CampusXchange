@@ -8,7 +8,7 @@ const Register = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [image, setImage] = useState(null);
+  // const [image, setImage] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,16 +19,16 @@ const Register = () => {
     }
   }, [navigate]);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImage(reader.result);
-    };
-    if (file) {
-      reader.readAsDataURL(file);
-    }
-  };
+  // const handleImageChange = (e) => {
+  //   const file = e.target.files[0];
+  //   const reader = new FileReader();
+  //   reader.onloadend = () => {
+  //     setImage(reader.result);
+  //   };
+  //   if (file) {
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
 
   const validatePassword = (password) => {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{6,15}$/;
@@ -50,13 +50,14 @@ const Register = () => {
         username,
         email,
         password,
-        avatarImage: image,
       });
 
       if (response.data.status === "ok") {
         toast.success("Registration Successful");
-        if (response.data.userId) {
-          localStorage.setItem("userId", response.data.userId);
+        const userId = response.data.userId;
+        if (userId) {
+          localStorage.setItem("userId", userId);
+          //console.log("Navigating to setAvatar with userId:", userId);
           navigate("/setAvatar");
         } else {
           navigate("/login");
@@ -122,7 +123,7 @@ const Register = () => {
               required
             />
           </div>
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <label
               className="block text-gray-700 text-sm font-bold mb-2"
               htmlFor="image"
@@ -136,7 +137,7 @@ const Register = () => {
               onChange={handleImageChange}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             />
-          </div>
+          </div> */}
           <button
             type="submit"
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
