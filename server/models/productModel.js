@@ -36,6 +36,7 @@ const productSchema = new mongoose.Schema({
       required: true, // Ensure this matches your use case
     },
   },
+  likes: { type: [mongoose.Schema.Types.ObjectId], ref: "User", default: [] }, // Initialize likes as an empty array // Add a likes field that stores an array of user IDs
 });
 
 const Product = mongoose.model("Product", productSchema);

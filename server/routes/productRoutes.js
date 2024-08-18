@@ -74,15 +74,67 @@ router.post("/products", auth, upload.single("image"), async (req, res) => {
 });
 
 // Handle fetching products
-router.get("/products", async (req, res) => {
+router.get("/products", auth, async (req, res) => {
   try {
     const products = await Product.find({
       isApproved: true,
       "postedBy.userId": { $ne: req.user._id },
-    }).populate("postedBy.userId", "username");
-    res.status(200).json({ status: "ok", products });
+    })
+      .populate("postedBy.userId", "username")
+      .lean(); // Use lean() to return plain JS objects
+
+    // Add a likesCount property and isLiked status for each product
+    const productsWithLikes = products.map((product) => {
+      const likesArray = Array.isArray(product.likes) ? product.likes : [];
+      const userIdStr = req.user._id.toString();
+      const isLiked = likesArray.map((id) => id.toString()).includes(userIdStr);
+      return {
+        ...product,
+        likesCount: likesArray.length,
+        isLiked,
+      };
+    });
+
+    res.status(200).json({ status: "ok", products: productsWithLikes });
   } catch (error) {
     console.error("Error fetching products:", error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+});
+
+// Handle liking/unliking a product
+router.post("/products/:id/like", auth, async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const userId = req.user._id; // Get the user ID from the authenticated user
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Product not found" });
+    }
+
+    const isLiked = product.likes.includes(userId);
+
+    if (isLiked) {
+      // Unlike the product
+      product.likes.pull(userId);
+    } else {
+      // Like the product
+      product.likes.push(userId);
+    }
+
+    await product.save();
+
+    res.status(200).json({
+      status: "ok",
+      likesCount: product.likes.length,
+      isLiked: !isLiked, // This indicates the new state
+    });
+  } catch (error) {
+    console.error("Error liking/unliking product:", error);
     res.status(500).json({ status: "error", message: "Server error" });
   }
 });

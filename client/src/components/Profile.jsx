@@ -51,6 +51,7 @@ const Profile = () => {
         );
 
         if (response.data.status === "ok") {
+          //console.log(response.data.products); // Debugging step
           setProducts(response.data.products);
         } else {
           console.error("Error fetching user products", response.data);
@@ -77,6 +78,42 @@ const Profile = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
+
+  // const handleLikeProduct = async (productId) => {
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     if (!token) {
+  //       navigate("/login");
+  //       return;
+  //     }
+
+  //     const response = await axios.post(
+  //       "http://localhost:5000/api/products/like",
+  //       { productId },
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+
+  //     if (response.data.status === "ok") {
+  //       // Update the local state to reflect the like/unlike change
+  //       setProducts((prevProducts) =>
+  //         prevProducts.map((product) =>
+  //           product._id === productId
+  //             ? {
+  //                 ...product,
+  //                 isLiked: !product.isLiked,
+  //                 likesCount: response.data.likesCount,
+  //               }
+  //             : product
+  //         )
+  //       );
+  //     } else {
+  //       toast.error("Failed to like/unlike product");
+  //     }
+  //   } catch (error) {
+  //     toast.error("Error liking/unliking product");
+  //     console.error("Error liking/unliking product", error);
+  //   }
+  // };
 
   const handleDeleteAccount = async () => {
     try {
@@ -233,6 +270,7 @@ const Profile = () => {
                 products={products}
                 currentUser={user}
                 hidePostedBy={true}
+                // onLikeProduct={handleLikeProduct}
                 onDeleteProduct={(productId) => {
                   setProducts((prevProducts) =>
                     prevProducts.filter((product) => product._id !== productId)

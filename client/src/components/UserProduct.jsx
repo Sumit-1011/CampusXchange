@@ -13,6 +13,18 @@ const UserProducts = ({
   // State to track which product is being deleted
   const [deletingProductId, setDeletingProductId] = useState(null);
 
+  // Initialize likes state
+  const [likes, setLikes] = useState(
+    products.reduce((acc, product) => {
+      acc[product._id] = {
+        likesCount: product.likes?.length || 0,
+        isLiked: product.likes?.includes(currentUser?._id) || false,
+        isProcessing: false,
+      };
+      return acc;
+    }, {})
+  );
+
   const handleDeleteProduct = async (productId, imageId) => {
     try {
       setDeletingProductId(productId); // Set the product as being deleted
@@ -37,6 +49,57 @@ const UserProducts = ({
       console.error("Error deleting product:", error);
       toast.error("An error occurred while deleting the product.");
       setDeletingProductId(null); // Reset if there's an error
+    }
+  };
+
+  const handleLikeProduct = async (productId) => {
+    try {
+      setLikes((prevLikes) => ({
+        ...prevLikes,
+        [productId]: {
+          ...prevLikes[productId],
+          isProcessing: true, // Disable the button while processing
+        },
+      }));
+
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `http://localhost:5000/api/products/${productId}/like`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.status === "ok") {
+        setLikes((prevLikes) => ({
+          ...prevLikes,
+          [productId]: {
+            likesCount: response.data.likesCount,
+            isLiked: response.data.isLiked,
+            isProcessing: false, // Re-enable the button
+          },
+        }));
+      } else {
+        toast.error("Failed to like the product.");
+        setLikes((prevLikes) => ({
+          ...prevLikes,
+          [productId]: {
+            ...prevLikes[productId],
+            isProcessing: false,
+          },
+        }));
+      }
+    } catch (error) {
+      console.error("Error liking product:", error);
+      toast.error("An error occurred while liking the product.");
+      setLikes((prevLikes) => ({
+        ...prevLikes,
+        [productId]: {
+          ...prevLikes[productId],
+          isProcessing: false,
+        },
+      }));
     }
   };
 
@@ -69,6 +132,35 @@ const UserProducts = ({
               Posted by: {product?.postedBy?.userId?.username || "Unknown User"}
             </p>
           )}
+
+          <div className="flex items-center justify-between mt-2">
+            {/* Only show the like button if the current user is not the one who posted the product */}
+            {currentUser?._id !== product?.postedBy?.userId && (
+              <button
+                onClick={() => handleLikeProduct(product._id)}
+                disabled={!!likes[product._id]?.isProcessing} // Disable while processing
+                className={`text-sm font-semibold py-1 px-3 rounded focus:outline-none ${
+                  likes[product._id]?.isLiked
+                    ? "bg-red-500 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                {likes[product._id]?.isProcessing
+                  ? likes[product._id]?.isLiked
+                    ? "Unliking..."
+                    : "Liking..."
+                  : likes[product._id]?.isLiked
+                  ? "Unlike"
+                  : "Like"}
+              </button>
+            )}
+
+            {/* Always show the likes count */}
+            <span className="text-sm text-gray-700">
+              {likes[product._id]?.likesCount ?? 0}{" "}
+              {likes[product._id]?.likesCount === 1 ? "Like" : "Likes"}
+            </span>
+          </div>
 
           {currentUser?._id &&
             product?.postedBy?.userId === currentUser?._id && (
@@ -110,13 +202,15 @@ UserProducts.propTypes = {
           PropTypes.string, // In case it's sometimes a string
         ]).isRequired,
       }).isRequired,
+      likes: PropTypes.arrayOf(PropTypes.string), // Array of user IDs who liked the product
     })
-  ),
+  ).isRequired,
   onDeleteProduct: PropTypes.func.isRequired,
   currentUser: PropTypes.shape({
     _id: PropTypes.string.isRequired,
   }).isRequired,
   hidePostedBy: PropTypes.bool,
+  // onLikeProduct: PropTypes.func.isRequired, // Ensure this prop is marked as required
 };
 
 export default UserProducts;
