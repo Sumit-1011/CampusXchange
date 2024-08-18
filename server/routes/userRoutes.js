@@ -185,6 +185,20 @@ router.get("/user", async (req, res) => {
   }
 });
 
+// Get Files
+router.get("/user/favorites", auth, async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming the user ID is stored in the token
+    const likedProducts = await Product.find({ likes: userId });
+    res.json({ status: "ok", products: likedProducts });
+  } catch (error) {
+    console.error("Error fetching liked products", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Error fetching liked products" });
+  }
+});
+
 //delete the User with its data
 router.delete("/user", auth, async (req, res) => {
   try {
@@ -207,6 +221,9 @@ router.delete("/user", auth, async (req, res) => {
         await cloudinary.uploader.destroy(product.cloudinaryPublicId);
       }
     }
+
+    // Remove likes associated with the user
+    await Product.updateMany({ likes: userId }, { $pull: { likes: userId } });
 
     // Delete the user's products from the database
     await Product.deleteMany({ "postedBy.userId": userId });

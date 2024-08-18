@@ -76,11 +76,22 @@ router.post("/products", auth, upload.single("image"), async (req, res) => {
 // Handle fetching products
 router.get("/products", auth, async (req, res) => {
   try {
+    const { sortBy } = req.query; // Get sortBy from query parameters
+
+    let sortOptions = {};
+
+    if (sortBy === "date") {
+      sortOptions = { createdAt: -1 }; // Sort by date (newest first)
+    } else if (sortBy === "likes") {
+      sortOptions = { likesCount: -1 }; // Sort by likes (most likes first)
+    }
+
     const products = await Product.find({
       isApproved: true,
       "postedBy.userId": { $ne: req.user._id },
     })
       .populate("postedBy.userId", "username")
+      .sort(sortOptions)
       .lean(); // Use lean() to return plain JS objects
 
     // Add a likesCount property and isLiked status for each product

@@ -11,6 +11,7 @@ const Home = () => {
   const [products, setProducts] = useState([]);
   const [isPostingProduct, setIsPostingProduct] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState("date");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -52,7 +53,18 @@ const Home = () => {
           const filteredProducts = response.data.products.filter(
             (product) => product.postedBy.userId._id !== user._id
           );
-          setProducts(filteredProducts);
+
+          // Sort products based on the selected option
+          const sortedProducts = filteredProducts.sort((a, b) => {
+            if (sortBy === "date") {
+              return new Date(b.createdAt) - new Date(a.createdAt); // Sort by date
+            } else if (sortBy === "likes") {
+              return b.likesCount - a.likesCount; // Sort by likes
+            }
+            return 0;
+          });
+
+          setProducts(sortedProducts);
         } else {
           console.error("Error fetching products", response.data);
         }
@@ -64,7 +76,7 @@ const Home = () => {
     };
 
     fetchProducts();
-  }, [user]);
+  }, [user, sortBy]);
 
   const handleProductPosted = (newProduct) => {
     if (
@@ -92,7 +104,15 @@ const Home = () => {
       <div className={`bg-yellow-400 p-4 ${isPostingProduct ? "blur" : ""}`}>
         <div className="flex justify-between items-center mb-4">
           <input type="text" placeholder="Search..." className="p-2 rounded" />
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="p-2 rounded border"
+            >
+              <option value="date">Sort by Date</option>
+              <option value="likes">Sort by Likes</option>
+            </select>
             <button
               onClick={() => setIsPostingProduct(true)}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-4"

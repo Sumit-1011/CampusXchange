@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import UserProduct from "./UserProduct";
 import PostProduct from "./PostProduct";
+import DeleteAccount from "./DeleteAccount";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -12,7 +13,9 @@ const Profile = () => {
   const [products, setProducts] = useState([]);
   const [isPostingProduct, setIsPostingProduct] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [likedProducts, setLikedProducts] = useState([]);
   const [selectedSection, setSelectedSection] = useState("Profile"); // Track the selected section
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -65,6 +68,54 @@ const Profile = () => {
     fetchUserProducts();
   }, [navigate]);
 
+  useEffect(() => {
+    const fetchLikedProducts = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          "http://localhost:5000/api/user/favorites",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (response.data.status === "ok") {
+          console.log(
+            "Fetched Liked Products from API:",
+            response.data.products
+          );
+          setLikedProducts(response.data.products);
+          console.log("Updated Liked Products State:", response.data.products);
+        } else {
+          console.error("Error fetching liked products:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching liked products:", error);
+      }
+    };
+
+    if (selectedSection === "Your Favorites") {
+      console.log(
+        "Selected section is 'Your Favorites'. Fetching liked products..."
+      );
+      fetchLikedProducts();
+    }
+  }, [selectedSection]);
+
+  const handleDeleteAccountClick = () => {
+    setShowConfirmationModal(true);
+  };
+
+  const handleConfirmDeleteAccount = async () => {
+    setShowConfirmationModal(false);
+    // Proceed with account deletion
+    await handleDeleteAccount();
+  };
+
+  const handleCancelDeleteAccount = () => {
+    setShowConfirmationModal(false);
+  };
+
   const handleProductPosted = (newProduct) => {
     if (!newProduct || !newProduct._id) {
       console.error("Posted product is undefined or invalid:", newProduct);
@@ -78,42 +129,6 @@ const Profile = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
-
-  // const handleLikeProduct = async (productId) => {
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     if (!token) {
-  //       navigate("/login");
-  //       return;
-  //     }
-
-  //     const response = await axios.post(
-  //       "http://localhost:5000/api/products/like",
-  //       { productId },
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     );
-
-  //     if (response.data.status === "ok") {
-  //       // Update the local state to reflect the like/unlike change
-  //       setProducts((prevProducts) =>
-  //         prevProducts.map((product) =>
-  //           product._id === productId
-  //             ? {
-  //                 ...product,
-  //                 isLiked: !product.isLiked,
-  //                 likesCount: response.data.likesCount,
-  //               }
-  //             : product
-  //         )
-  //       );
-  //     } else {
-  //       toast.error("Failed to like/unlike product");
-  //     }
-  //   } catch (error) {
-  //     toast.error("Error liking/unliking product");
-  //     console.error("Error liking/unliking product", error);
-  //   }
-  // };
 
   const handleDeleteAccount = async () => {
     try {
@@ -162,6 +177,14 @@ const Profile = () => {
         </div>
       )}
 
+      {showConfirmationModal && (
+        <DeleteAccount
+          message="Are you sure you want to delete your account?"
+          onConfirm={handleConfirmDeleteAccount}
+          onCancel={handleCancelDeleteAccount}
+        />
+      )}
+
       <div className="w-1/4 bg-white p-6 rounded shadow-md flex flex-col items-center h-screen">
         <button
           onClick={() => navigate("/")}
@@ -203,7 +226,7 @@ const Profile = () => {
           Your Favorites
         </button>
         <button
-          onClick={handleDeleteAccount}
+          onClick={handleDeleteAccountClick}
           className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4 w-full text-left"
         >
           Delete Account
@@ -281,8 +304,47 @@ const Profile = () => {
           </div>
         )}
         {selectedSection === "Your Favorites" && (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-2xl">Here are your favorite products!</p>
+          <div className="flex flex-col h-full">
+            {/* Top 1/3rd with yellow background and space for search bar and Post Product button */}
+            <div className="h-1/3 bg-yellow-400 flex items-center justify-between px-6">
+              {/* Search Bar on the left side */}
+              <input
+                type="text"
+                placeholder="Search Products"
+                className="w-1/2 p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+
+              {/* Post a Product button on the right side */}
+              <button
+                onClick={() => setIsPostingProduct(true)}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              >
+                Post a Product
+              </button>
+            </div>
+
+            {/* Bottom 2/3rd with product listing */}
+            <div className="h-2/3 mt-4 overflow-y-auto">
+              {likedProducts && likedProducts.length > 0 ? (
+                <UserProduct
+                  products={likedProducts} // Pass the array of liked products
+                  currentUser={user}
+                  hidePostedBy={true}
+                  onDeleteProduct={(productId) => {
+                    setLikedProducts((prevProducts) =>
+                      prevProducts.filter(
+                        (product) => product._id !== productId
+                      )
+                    );
+                  }}
+                  // onLikeProduct={handleLikeProduct}
+                />
+              ) : (
+                <p className="text-lg font-medium">
+                  {`You haven't liked any product yet!`}
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>
