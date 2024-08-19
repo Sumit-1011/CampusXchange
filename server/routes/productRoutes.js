@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const cloudinary = require("../config/cloudinary");
+const redisClient = require("../utils/redisClient"); // Import your Redis client
 const verifyToken = require("../middleware/auth");
 const Product = require("../models/productModel");
 const User = require("../models/userModel");
@@ -10,6 +11,59 @@ const upload = multer({ storage: multer.memoryStorage() }); // Store in memory f
 
 // Middleware to check for authentication
 router.use(verifyToken);
+
+// Handle fetching products
+router.get("/products", auth, async (req, res) => {
+  try {
+    const { sortBy } = req.query;
+    const userId = req.user._id.toString();
+    const cacheKey = `products_${userId}_${sortBy || "default"}`;
+
+    //console.log("Checking cache for key:", cacheKey);
+
+    // Retrieve from Redis cache
+    const cachedProducts = await redisClient.get(cacheKey);
+    if (cachedProducts) {
+      //console.log("Cache hit for key:", cacheKey);
+      return res
+        .status(200)
+        .json({ status: "ok", products: JSON.parse(cachedProducts) });
+    }
+
+    //console.log("Cache miss, querying MongoDB");
+
+    // Query MongoDB
+    const products = await Product.find({
+      isApproved: true,
+      "postedBy.userId": { $ne: req.user._id },
+    })
+      .populate("postedBy.userId", "username")
+      .sort(sortBy === "likes" ? { likesCount: -1 } : { createdAt: -1 })
+      .lean();
+
+    const productsWithLikes = products.map((product) => {
+      const likesArray = Array.isArray(product.likes) ? product.likes : [];
+      const isLiked = likesArray.map((id) => id.toString()).includes(userId);
+      return {
+        ...product,
+        likesCount: likesArray.length,
+        isLiked,
+      };
+    });
+
+    //console.log("Setting cache for key:", cacheKey);
+
+    // Cache the MongoDB result in Redis with expiration time
+    await redisClient.set(cacheKey, JSON.stringify(productsWithLikes), {
+      EX: 3600, // Expire in 1 hour
+    });
+
+    res.status(200).json({ status: "ok", products: productsWithLikes });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+});
 
 // Handle product posting
 router.post("/products", auth, upload.single("image"), async (req, res) => {
@@ -54,7 +108,7 @@ router.post("/products", auth, upload.single("image"), async (req, res) => {
       purchaseDateMonth,
       purchaseDateYear,
       image: imageUrl,
-      cloudinaryPublicId: cloudinaryPublicId, // Store the public_id here
+      cloudinaryPublicId, // Store the public_id here
       postedBy: {
         userId: req.user._id,
       },
@@ -62,6 +116,22 @@ router.post("/products", auth, upload.single("image"), async (req, res) => {
     });
 
     await newProduct.save();
+
+    // Clear relevant cache entries
+    const cacheKeys = [
+      `products_${req.user._id}_date`,
+      `products_${req.user._id}_likes`,
+      `products_${req.user._id}_default`,
+    ];
+
+    for (const key of cacheKeys) {
+      try {
+        await redisClient.del(key);
+      } catch (error) {
+        console.error(`Failed to clear cache for key ${key}`, error);
+      }
+    }
+
     res.status(200).json({
       status: "ok",
       message: "Product posted successfully",
@@ -73,51 +143,11 @@ router.post("/products", auth, upload.single("image"), async (req, res) => {
   }
 });
 
-// Handle fetching products
-router.get("/products", auth, async (req, res) => {
-  try {
-    const { sortBy } = req.query; // Get sortBy from query parameters
-
-    let sortOptions = {};
-
-    if (sortBy === "date") {
-      sortOptions = { createdAt: -1 }; // Sort by date (newest first)
-    } else if (sortBy === "likes") {
-      sortOptions = { likesCount: -1 }; // Sort by likes (most likes first)
-    }
-
-    const products = await Product.find({
-      isApproved: true,
-      "postedBy.userId": { $ne: req.user._id },
-    })
-      .populate("postedBy.userId", "username")
-      .sort(sortOptions)
-      .lean(); // Use lean() to return plain JS objects
-
-    // Add a likesCount property and isLiked status for each product
-    const productsWithLikes = products.map((product) => {
-      const likesArray = Array.isArray(product.likes) ? product.likes : [];
-      const userIdStr = req.user._id.toString();
-      const isLiked = likesArray.map((id) => id.toString()).includes(userIdStr);
-      return {
-        ...product,
-        likesCount: likesArray.length,
-        isLiked,
-      };
-    });
-
-    res.status(200).json({ status: "ok", products: productsWithLikes });
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    res.status(500).json({ status: "error", message: "Server error" });
-  }
-});
-
 // Handle liking/unliking a product
 router.post("/products/:id/like", auth, async (req, res) => {
   try {
     const productId = req.params.id;
-    const userId = req.user._id; // Get the user ID from the authenticated user
+    const userId = req.user._id;
 
     const product = await Product.findById(productId);
 
@@ -130,19 +160,32 @@ router.post("/products/:id/like", auth, async (req, res) => {
     const isLiked = product.likes.includes(userId);
 
     if (isLiked) {
-      // Unlike the product
       product.likes.pull(userId);
     } else {
-      // Like the product
       product.likes.push(userId);
     }
 
     await product.save();
 
+    // Clear relevant cache entries
+    const cacheKeys = [
+      `products_${userId}_date`,
+      `products_${userId}_likes`,
+      `products_${userId}_default`,
+    ];
+
+    for (const key of cacheKeys) {
+      try {
+        await redisClient.del(key);
+      } catch (error) {
+        console.error(`Failed to clear cache for key ${key}`, error);
+      }
+    }
+
     res.status(200).json({
       status: "ok",
       likesCount: product.likes.length,
-      isLiked: !isLiked, // This indicates the new state
+      isLiked: !isLiked,
     });
   } catch (error) {
     console.error("Error liking/unliking product:", error);
@@ -151,10 +194,10 @@ router.post("/products/:id/like", auth, async (req, res) => {
 });
 
 // Handle product deletion
-router.delete("/products/:id", async (req, res) => {
+router.delete("/products/:id", auth, async (req, res) => {
   try {
     const productId = req.params.id;
-    const userId = req.user._id; // Ensure this matches your user object structure
+    const userId = req.user._id;
 
     // Find the product by ID
     const product = await Product.findById(productId);
@@ -171,10 +214,9 @@ router.delete("/products/:id", async (req, res) => {
     }
 
     // Delete the image from Cloudinary if it exists
-    if (product.image) {
+    if (product.cloudinaryPublicId) {
       try {
-        const imageId = product.image.split("/").pop().split(".")[0]; // Extract the public ID
-        await cloudinary.uploader.destroy(imageId);
+        await cloudinary.uploader.destroy(product.cloudinaryPublicId);
       } catch (error) {
         console.error("Error deleting image from Cloudinary:", error);
         return res
@@ -185,6 +227,21 @@ router.delete("/products/:id", async (req, res) => {
 
     // Delete the product from the database
     await product.deleteOne();
+
+    // Clear relevant cache entries
+    const cacheKeys = [
+      `products_${userId}_date`,
+      `products_${userId}_likes`,
+      `products_${userId}_default`,
+    ];
+
+    for (const key of cacheKeys) {
+      try {
+        await redisClient.del(key);
+      } catch (error) {
+        console.error(`Failed to clear cache for key ${key}`, error);
+      }
+    }
 
     res.status(200).json({
       status: "ok",

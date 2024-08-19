@@ -4,6 +4,7 @@ const { connectToMongoDB } = require("./config/database");
 const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const redisClient = require("./utils/redisClient"); // Import Redis client
 
 const app = express();
 const PORT = 5000;
@@ -28,6 +29,17 @@ app.get("*", (req, res) => {
 });
 
 const port = process.env.PORT || 5000;
+
+// Example of using the Redis client
+app.get("/cache", async (req, res) => {
+  try {
+    const value = await redisClient.get("some_key"); // Use Redis client to get value
+    res.json({ value });
+  } catch (error) {
+    console.error("Error fetching from Redis", error);
+    res.status(500).send("Server Error");
+  }
+});
 
 async function startServer() {
   try {
