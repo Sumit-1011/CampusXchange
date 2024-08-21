@@ -19,6 +19,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     min: 8,
   },
+  isAdmin: {
+    type: Boolean,
+    default: false, // New field to differentiate admins
+  },
   isAvatarImageSet: {
     type: Boolean,
     default: false,

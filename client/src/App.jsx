@@ -8,6 +8,7 @@ import Profile from "./components/Profile";
 import AuthenticatedRoute from "./components/AuthenticatedRoute";
 import PublicRoute from "./components/PublicRoute"; // Ensure this is imported
 import "react-toastify/dist/ReactToastify.css";
+import AdminProducts from "./components/AdminProducts";
 
 export default function App() {
   return (
@@ -27,6 +28,10 @@ export default function App() {
         <Route
           path="/profile"
           element={<AuthenticatedRoute element={<Profile />} />}
+        />
+        <Route
+          path="/admin"
+          element={<AuthenticatedRoute element={<AdminProducts />} />}
         />
         <Route path="/" element={<AuthenticatedRoute element={<Home />} />} />
         <Route path="*" element={<AuthenticatedRoute element={<Home />} />} />

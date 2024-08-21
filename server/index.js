@@ -17,9 +17,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Routes
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 app.use("/api", userRoutes);
 app.use("/api", productRoutes);
+app.use("/api", adminRoutes);
 
 // Serve static files from the React app (optional)
 app.use(express.static(path.join(__dirname, "public/dist")));

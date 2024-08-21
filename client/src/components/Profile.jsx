@@ -80,12 +80,12 @@ const Profile = () => {
         );
 
         if (response.data.status === "ok") {
-          console.log(
-            "Fetched Liked Products from API:",
-            response.data.products
-          );
+          // console.log(
+          //   "Fetched Liked Products from API:",
+          //   response.data.products
+          // );
           setLikedProducts(response.data.products);
-          console.log("Updated Liked Products State:", response.data.products);
+          //console.log("Updated Liked Products State:", response.data.products);
         } else {
           console.error("Error fetching liked products:", response.data);
         }
@@ -95,9 +95,9 @@ const Profile = () => {
     };
 
     if (selectedSection === "Your Favorites") {
-      console.log(
-        "Selected section is 'Your Favorites'. Fetching liked products..."
-      );
+      // console.log(
+      //   "Selected section is 'Your Favorites'. Fetching liked products..."
+      // );
       fetchLikedProducts();
     }
   }, [selectedSection]);

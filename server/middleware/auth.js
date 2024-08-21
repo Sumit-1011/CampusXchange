@@ -27,4 +27,13 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-module.exports = verifyToken;
+// Middleware to check if the user is an admin
+const verifyAdmin = (req, res, next) => {
+  if (req.user && req.user.isAdmin) {
+    next(); // User is an admin, proceed to the next middleware/controller
+  } else {
+    res.status(403).json({ status: "error", message: "Admin access required" });
+  }
+};
+
+module.exports = { verifyToken, verifyAdmin };

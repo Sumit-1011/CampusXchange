@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const cloudinary = require("../config/cloudinary");
 const redisClient = require("../utils/redisClient"); // Import your Redis client
-const verifyToken = require("../middleware/auth");
+const { verifyToken } = require("../middleware/auth");
 const Product = require("../models/productModel");
 const User = require("../models/userModel");
 const auth = require("../middleware/auth");
@@ -13,7 +13,7 @@ const upload = multer({ storage: multer.memoryStorage() }); // Store in memory f
 router.use(verifyToken);
 
 // Handle fetching products
-router.get("/products", auth, async (req, res) => {
+router.get("/products", verifyToken, async (req, res) => {
   try {
     const { sortBy } = req.query;
     const userId = req.user._id.toString();
@@ -66,85 +66,78 @@ router.get("/products", auth, async (req, res) => {
 });
 
 // Handle product posting
-router.post("/products", auth, upload.single("image"), async (req, res) => {
-  try {
-    const { price, name, purchaseDateMonth, purchaseDateYear } = req.body;
+router.post(
+  "/products",
+  verifyToken,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const { price, name, purchaseDateMonth, purchaseDateYear } = req.body;
 
-    if (!price || !name || !purchaseDateMonth || !purchaseDateYear) {
-      return res
-        .status(400)
-        .json({ status: "error", message: "All fields are required" });
-    }
-
-    // Upload image to Cloudinary if available
-    let imageUrl = "";
-    let cloudinaryPublicId = "";
-    if (req.file) {
-      try {
-        const result = await new Promise((resolve, reject) => {
-          cloudinary.uploader
-            .upload_stream({ resource_type: "image" }, (error, result) => {
-              if (error) {
-                return reject(new Error("Cloudinary upload failed"));
-              }
-              resolve(result);
-            })
-            .end(req.file.buffer);
-        });
-
-        imageUrl = result.secure_url;
-        cloudinaryPublicId = result.public_id;
-      } catch (error) {
-        console.error("Error uploading to Cloudinary:", error);
+      if (!price || !name || !purchaseDateMonth || !purchaseDateYear) {
         return res
-          .status(500)
-          .json({ status: "error", message: "Image upload failed" });
+          .status(400)
+          .json({ status: "error", message: "All fields are required" });
       }
-    }
 
-    const newProduct = new Product({
-      price,
-      name,
-      purchaseDateMonth,
-      purchaseDateYear,
-      image: imageUrl,
-      cloudinaryPublicId, // Store the public_id here
-      postedBy: {
-        userId: req.user._id,
-      },
-      isApproved: true,
-    });
+      // Upload image to Cloudinary if available
+      let imageUrl = "";
+      let cloudinaryPublicId = "";
+      if (req.file) {
+        try {
+          const result = await new Promise((resolve, reject) => {
+            cloudinary.uploader
+              .upload_stream({ resource_type: "image" }, (error, result) => {
+                if (error) {
+                  return reject(new Error("Cloudinary upload failed"));
+                }
+                resolve(result);
+              })
+              .end(req.file.buffer);
+          });
 
-    await newProduct.save();
-
-    // Clear relevant cache entries
-    const cacheKeys = [
-      `products_${req.user._id}_date`,
-      `products_${req.user._id}_likes`,
-      `products_${req.user._id}_default`,
-    ];
-
-    for (const key of cacheKeys) {
-      try {
-        await redisClient.del(key);
-      } catch (error) {
-        console.error(`Failed to clear cache for key ${key}`, error);
+          imageUrl = result.secure_url;
+          cloudinaryPublicId = result.public_id;
+        } catch (error) {
+          console.error("Error uploading to Cloudinary:", error);
+          return res
+            .status(500)
+            .json({ status: "error", message: "Image upload failed" });
+        }
       }
-    }
 
-    res.status(200).json({
-      status: "ok",
-      message: "Product posted successfully",
-      product: newProduct,
-    });
-  } catch (error) {
-    console.error("Error posting product:", error);
-    res.status(500).json({ status: "error", message: "Server error" });
+      const newProduct = new Product({
+        price,
+        name,
+        purchaseDateMonth,
+        purchaseDateYear,
+        image: imageUrl,
+        cloudinaryPublicId,
+        postedBy: {
+          userId: req.user._id,
+        },
+        isApproved: false,
+      });
+
+      await newProduct.save();
+
+      // Clear the unapproved products cache
+      await redisClient.del("unapproved_products");
+
+      res.status(200).json({
+        status: "ok",
+        message: "Product posted successfully",
+        product: newProduct,
+      });
+    } catch (error) {
+      console.error("Error posting product:", error);
+      res.status(500).json({ status: "error", message: "Server error" });
+    }
   }
-});
+);
 
 // Handle liking/unliking a product
-router.post("/products/:id/like", auth, async (req, res) => {
+router.post("/products/:id/like", verifyToken, async (req, res) => {
   try {
     const productId = req.params.id;
     const userId = req.user._id;
@@ -194,7 +187,7 @@ router.post("/products/:id/like", auth, async (req, res) => {
 });
 
 // Handle product deletion
-router.delete("/products/:id", auth, async (req, res) => {
+router.delete("/products/:id", verifyToken, async (req, res) => {
   try {
     const productId = req.params.id;
     const userId = req.user._id;
@@ -228,20 +221,8 @@ router.delete("/products/:id", auth, async (req, res) => {
     // Delete the product from the database
     await product.deleteOne();
 
-    // Clear relevant cache entries
-    const cacheKeys = [
-      `products_${userId}_date`,
-      `products_${userId}_likes`,
-      `products_${userId}_default`,
-    ];
-
-    for (const key of cacheKeys) {
-      try {
-        await redisClient.del(key);
-      } catch (error) {
-        console.error(`Failed to clear cache for key ${key}`, error);
-      }
-    }
+    // Clear the unapproved products cache
+    await redisClient.del("unapproved_products");
 
     res.status(200).json({
       status: "ok",

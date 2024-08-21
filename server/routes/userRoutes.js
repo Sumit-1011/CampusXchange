@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 const Product = require("../models/productModel"); // Import Product model
-const auth = require("../middleware/auth"); // Import auth middleware
+const { verifyToken } = require("../middleware/auth"); // Import auth middleware
 const cloudinary = require("../config/cloudinary"); // Import cloudinary configuration
 const axios = require("axios");
 
@@ -17,7 +17,7 @@ const validatePassword = (password) => {
 };
 
 // Get products posted by the authenticated user
-router.get("/user/products", auth, async (req, res) => {
+router.get("/user/products", verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -186,7 +186,7 @@ router.get("/user", async (req, res) => {
 });
 
 // Get Files
-router.get("/user/favorites", auth, async (req, res) => {
+router.get("/user/favorites", verifyToken, async (req, res) => {
   try {
     const userId = req.user.id; // Assuming the user ID is stored in the token
     const likedProducts = await Product.find({ likes: userId });
@@ -200,7 +200,7 @@ router.get("/user/favorites", auth, async (req, res) => {
 });
 
 //delete the User with its data
-router.delete("/user", auth, async (req, res) => {
+router.delete("/user", verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
 

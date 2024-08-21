@@ -7,3 +7,76 @@
 *>* {
     font-family: 'Poppins', sans-serif;
 }
+
+/* Custom heart button styling */
+.container {
+    background-color: white;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 10px;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+    color: black;
+    transition: opacity 0.3s;
+    width: auto
+}
+
+.like-button svg {
+    fill: none;
+    stroke: hsl(0deg 0% 50%);
+    transition: stroke 0.3s ease, fill 0.3s ease;
+}
+
+.like-button.liked svg {
+    fill: hsl(0deg 100% 50%);
+    stroke: hsl(0deg 100% 50%);
+    animation: heartButton 1s;
+}
+
+@keyframes heartButton {
+
+    0%,
+    50%,
+    100% {
+        transform: scale(1);
+    }
+
+    25%,
+    75% {
+        transform: scale(1.3);
+    }
+}
+
+.like-button .action {
+    position: relative;
+    display: grid;
+}
+
+.like-button .action span {
+    grid-column: 1 / span 1;
+    grid-row: 1 / span 1;
+    transition: all 0.5s;
+}
+
+.like-button .action .option-1 {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.like-button.liked .action .option-1 {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+.like-button .action .option-2 {
+    transform: translateY(100%);
+    opacity: 0;
+}
+
+.like-button.liked .action .option-2 {
+    transform: translateY(0);
+    opacity: 1;
+}
