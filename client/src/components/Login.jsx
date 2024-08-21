@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Ensure this is imported globally
+import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -10,7 +10,6 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if token already exists in local storage
     const token = localStorage.getItem("token");
     if (token) {
       navigate("/");
@@ -26,28 +25,42 @@ const Login = () => {
       });
 
       if (response.data.status === "ok") {
-        // Store JWT token in local storage
         localStorage.setItem("token", response.data.token);
-
         toast.success("Login Successful");
-        // Navigate to home route
-        setTimeout(() => {
-          navigate("/");
-        }, 1500);
+        navigate("/");
       } else {
         toast.error("Invalid email or password");
       }
     } catch (error) {
-      toast.error("An error occurred during login");
+      // Log the error to the console for debugging
+      //console.error("Login error:", error);
+
+      // Check if error response exists and handle accordingly
+      if (error.response) {
+        // The server responded with a status other than 200 range
+        if (error.response.status === 401) {
+          toast.error("Invalid email or password");
+        } else {
+          toast.error("An error occurred during login");
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        toast.error("No response from server. Please try again later.");
+      } else {
+        // Something else happened while setting up the request
+        toast.error("An unexpected error occurred.");
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-4">Login</h2>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+          Login
+        </h2>
         <form onSubmit={handleLogin}>
-          <div className="mb-4">
+          <div className="mb-5">
             <label
               className="block text-gray-700 text-sm font-bold mb-2"
               htmlFor="email"
@@ -60,12 +73,12 @@ const Login = () => {
               name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
               required
               autoComplete="email"
             />
           </div>
-          <div className="mb-4">
+          <div className="mb-6">
             <label
               className="block text-gray-700 text-sm font-bold mb-2"
               htmlFor="password"
@@ -78,18 +91,24 @@ const Login = () => {
               name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
               required
               autoComplete="current-password"
             />
           </div>
           <button
             type="submit"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
           >
             Login
           </button>
         </form>
+        <p className="text-center text-gray-600 mt-6">
+          Don{"'"}t have an account?{" "}
+          <Link to="/register" className="text-blue-500 hover:underline">
+            Register here
+          </Link>
+        </p>
       </div>
     </div>
   );

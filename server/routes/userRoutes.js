@@ -16,6 +16,33 @@ const validatePassword = (password) => {
   return passwordRegex.test(password);
 };
 
+// Endpoint to check if username is available
+router.get("/check-username", async (req, res) => {
+  const { username } = req.query;
+
+  if (!username || !/^[a-zA-Z0-9_]+$/.test(username) || username.length > 15) {
+    return res
+      .status(400)
+      .json({ status: "error", message: "Invalid username" });
+  }
+
+  // Convert username to lowercase
+  const lowerCaseUsername = username.toLowerCase();
+
+  try {
+    const user = await User.findOne({ username: lowerCaseUsername });
+    if (user) {
+      return res.json({
+        status: "error",
+        message: "Username is already taken",
+      });
+    }
+    return res.json({ status: "ok", message: "Username is available" });
+  } catch (error) {
+    return res.status(500).json({ status: "error", message: "Server error" });
+  }
+});
+
 // Get products posted by the authenticated user
 router.get("/user/products", verifyToken, async (req, res) => {
   try {
