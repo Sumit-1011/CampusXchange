@@ -9,9 +9,11 @@ const Home = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]); // New state for filtered products
   const [isPostingProduct, setIsPostingProduct] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("date");
+  const [searchQuery, setSearchQuery] = useState(""); // New state for search query
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -65,6 +67,7 @@ const Home = () => {
           });
 
           setProducts(sortedProducts);
+          setFilteredProducts(sortedProducts); // Set filtered products to the sorted products initially
         } else {
           console.error("Error fetching products", response.data);
         }
@@ -77,6 +80,14 @@ const Home = () => {
 
     fetchProducts();
   }, [user, sortBy]);
+
+  useEffect(() => {
+    const lowercasedQuery = searchQuery.toLowerCase();
+    const filtered = products.filter((product) =>
+      product.name.toLowerCase().startsWith(lowercasedQuery)
+    );
+    setFilteredProducts(filtered);
+  }, [searchQuery, products]);
 
   const handleProductPosted = (newProduct) => {
     if (
@@ -103,7 +114,13 @@ const Home = () => {
 
       <div className={`bg-yellow-400 p-4 ${isPostingProduct ? "blur" : ""}`}>
         <div className="flex justify-between items-center mb-4">
-          <input type="text" placeholder="Search..." className="p-2 rounded" />
+          <input
+            type="text"
+            placeholder="Search..."
+            className="p-2 rounded"
+            value={searchQuery} // Bind the searchQuery state to the input value
+            onChange={(e) => setSearchQuery(e.target.value)} // Update the search query on each keystroke
+          />
           <div className="flex items-center space-x-4">
             <select
               value={sortBy}
@@ -136,12 +153,12 @@ const Home = () => {
           Array(8)
             .fill(0)
             .map((_, index) => <Shimmer key={index} />)
-        ) : user && products.length > 0 ? (
+        ) : user && filteredProducts.length > 0 ? (
           <UserProduct
-            products={products}
+            products={filteredProducts} // Render filtered products
             currentUser={user}
             onDeleteProduct={(productId) =>
-              setProducts((prevProducts) =>
+              setFilteredProducts((prevProducts) =>
                 prevProducts.filter((product) => product._id !== productId)
               )
             }

@@ -7,6 +7,7 @@ import { useNavigate, Link } from "react-router-dom";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -78,7 +79,7 @@ const Login = () => {
               autoComplete="email"
             />
           </div>
-          <div className="mb-6">
+          <div className="mb-6 relative">
             <label
               className="block text-gray-700 text-sm font-bold mb-2"
               htmlFor="password"
@@ -86,7 +87,7 @@ const Login = () => {
               Password
             </label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               name="password"
               value={password}
@@ -95,6 +96,13 @@ const Login = () => {
               required
               autoComplete="current-password"
             />
+            <button
+              type="button"
+              className="absolute right-0 p-1 text-gray-600 text-xl"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? "👀" : "🙈"}
+            </button>
           </div>
           <button
             type="submit"

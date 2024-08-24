@@ -199,8 +199,7 @@ const Profile = () => {
             className="w-24 h-24 rounded-full my-4 mt-8"
           />
         )}
-        <p className="text-xl mb-2">Username: {user.username}</p>
-        <p className="text-xl mb-4">Email: {user.email}</p>
+        <p className="text-xl mb-16">Username: {user.username}</p>
         <button
           onClick={() => setSelectedSection("Profile")}
           className={`bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4 w-full text-left ${

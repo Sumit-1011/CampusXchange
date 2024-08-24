@@ -26,7 +26,10 @@ router.get("/admin/products", async (req, res) => {
 
     // Fetch from the database if not in cache
     const products = await Product.find({ isApproved: false })
-      .populate("postedBy.userId", "username")
+      .populate({
+        path: "postedBy.userId",
+        select: "username email",
+      })
       .lean();
 
     // Cache the result with an expiration time

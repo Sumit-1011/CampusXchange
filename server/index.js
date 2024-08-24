@@ -18,10 +18,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const otpRoutes = require("./routes/otpRoutes");
 
 app.use("/api", userRoutes);
 app.use("/api", productRoutes);
 app.use("/api", adminRoutes);
+app.use("/api/otp", otpRoutes);
 
 // Serve static files from the React app (optional)
 app.use(express.static(path.join(__dirname, "public/dist")));

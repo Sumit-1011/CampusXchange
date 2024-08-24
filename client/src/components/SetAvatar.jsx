@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -9,6 +9,13 @@ const SetAvatar = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(false); // New loading state
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   const fetchAvatars = async () => {
     try {

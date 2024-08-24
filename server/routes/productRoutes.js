@@ -73,6 +73,7 @@ router.post(
   async (req, res) => {
     try {
       const { price, name, purchaseDateMonth, purchaseDateYear } = req.body;
+      const userId = req.user._id;
 
       if (!price || !name || !purchaseDateMonth || !purchaseDateYear) {
         return res
@@ -120,6 +121,21 @@ router.post(
       });
 
       await newProduct.save();
+
+      // Clear relevant cache entries
+      const cacheKeys = [
+        `products_${userId}_date`,
+        `products_${userId}_likes`,
+        `products_${userId}_default`,
+      ];
+
+      for (const key of cacheKeys) {
+        try {
+          await redisClient.del(key);
+        } catch (error) {
+          console.error(`Failed to clear cache for key ${key}`, error);
+        }
+      }
 
       // Clear the unapproved products cache
       await redisClient.del("unapproved_products");
@@ -220,6 +236,21 @@ router.delete("/products/:id", verifyToken, async (req, res) => {
 
     // Delete the product from the database
     await product.deleteOne();
+
+    // Clear relevant cache entries
+    const cacheKeys = [
+      `products_${userId}_date`,
+      `products_${userId}_likes`,
+      `products_${userId}_default`,
+    ];
+
+    for (const key of cacheKeys) {
+      try {
+        await redisClient.del(key);
+      } catch (error) {
+        console.error(`Failed to clear cache for key ${key}`, error);
+      }
+    }
 
     // Clear the unapproved products cache
     await redisClient.del("unapproved_products");
