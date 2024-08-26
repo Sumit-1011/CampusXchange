@@ -8,12 +8,11 @@ const UserProducts = ({
   products = [],
   onDeleteProduct,
   currentUser,
+  onProductClick,
   hidePostedBy,
 }) => {
-  // State to track which product is being deleted
   const [deletingProductId, setDeletingProductId] = useState(null);
 
-  // Initialize likes state
   const [likes, setLikes] = useState(
     products.reduce((acc, product) => {
       acc[product._id] = {
@@ -27,7 +26,7 @@ const UserProducts = ({
 
   const handleDeleteProduct = async (productId, imageId) => {
     try {
-      setDeletingProductId(productId); // Set the product as being deleted
+      setDeletingProductId(productId);
       const token = localStorage.getItem("token");
       const response = await axios.delete(
         `http://localhost:5000/api/products/${productId}`,
@@ -43,22 +42,24 @@ const UserProducts = ({
       } else {
         console.error("Error deleting product:", response.data.message);
         toast.error("Failed to delete the product.");
-        setDeletingProductId(null); // Reset if deletion fails
+        setDeletingProductId(null);
       }
     } catch (error) {
       console.error("Error deleting product:", error);
       toast.error("An error occurred while deleting the product.");
-      setDeletingProductId(null); // Reset if there's an error
+    } finally {
+      setDeletingProductId(null);
     }
   };
 
-  const handleLikeProduct = async (productId) => {
+  const handleLikeProduct = async (productId, e) => {
+    e.stopPropagation();
     try {
       setLikes((prevLikes) => ({
         ...prevLikes,
         [productId]: {
           ...prevLikes[productId],
-          isProcessing: true, // Disable the button while processing
+          isProcessing: true,
         },
       }));
 
@@ -77,7 +78,7 @@ const UserProducts = ({
           [productId]: {
             likesCount: response.data.likesCount,
             isLiked: response.data.isLiked,
-            isProcessing: false, // Re-enable the button
+            isProcessing: false,
           },
         }));
       } else {
@@ -103,6 +104,14 @@ const UserProducts = ({
     }
   };
 
+  const handleProductClick = (product) => {
+    const productWithLikes = {
+      ...product,
+      likesCount: likes[product._id]?.likesCount || 0,
+    };
+    onProductClick(productWithLikes);
+  };
+
   if (!Array.isArray(products)) {
     return <p>Invalid products data</p>;
   }
@@ -114,12 +123,21 @@ const UserProducts = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {products.map((product) => (
-        <div key={product._id} className="bg-white p-4 rounded shadow-md">
-          <img
-            src={product.image || "chair.jpg"}
-            alt={product.name || "Product"}
-            className="w-full h-32 object-cover mb-2"
-          />
+        <div key={product._id} className="bg-gray-50 p-4 rounded shadow-md">
+          <div className="relative">
+            <img
+              src={product.image || "chair.jpg"}
+              alt={product.name || "Product"}
+              className="w-full h-36 object-cover mb-2 rounded-lg"
+            />
+            {/* Add the eye icon to trigger product details */}
+            <button
+              onClick={() => handleProductClick(product)}
+              className="absolute top-22 right-2 text-gray-600 hover:text-gray-800 text-xl transition-transform transform hover:scale-125 border border-gray-600 rounded-full p-0.5 hover:border-gray-800"
+            >
+              👁️
+            </button>
+          </div>
           <h2 className="text-xl font-bold">
             {product.name || "Unnamed Product"}
           </h2>
@@ -134,12 +152,11 @@ const UserProducts = ({
           )}
 
           <div className="flex items-center justify-between mt-2">
-            {/* Only show the like button if the current user is not the one who posted the product */}
             {currentUser?._id !== product?.postedBy?.userId && (
               <button
-                onClick={() => handleLikeProduct(product._id)}
+                onClick={(e) => handleLikeProduct(product._id, e)}
                 disabled={!!likes[product._id]?.isProcessing}
-                className={`container like-button ${
+                className={`container like-button z-10 ${
                   likes[product._id]?.isLiked ? "liked" : ""
                 }`}
               >
@@ -169,8 +186,6 @@ const UserProducts = ({
                 </div>
               </button>
             )}
-
-            {/* Always show the likes count */}
             <span className="text-sm text-gray-700">
               {likes[product._id]?.likesCount ?? 0}{" "}
               {likes[product._id]?.likesCount === 1 ? "Like" : "Likes"}
@@ -211,21 +226,21 @@ UserProducts.propTypes = {
       postedBy: PropTypes.shape({
         userId: PropTypes.oneOfType([
           PropTypes.shape({
-            _id: PropTypes.string.isRequired, // Assuming the user ID is a string inside the object
-            username: PropTypes.string, // Adjust according to your structure
+            _id: PropTypes.string.isRequired,
+            username: PropTypes.string,
           }),
-          PropTypes.string, // In case it's sometimes a string
+          PropTypes.string,
         ]).isRequired,
       }).isRequired,
-      likes: PropTypes.arrayOf(PropTypes.string), // Array of user IDs who liked the product
+      likes: PropTypes.arrayOf(PropTypes.string),
     })
   ).isRequired,
   onDeleteProduct: PropTypes.func.isRequired,
   currentUser: PropTypes.shape({
     _id: PropTypes.string.isRequired,
   }).isRequired,
+  onProductClick: PropTypes.func.isRequired,
   hidePostedBy: PropTypes.bool,
-  // onLikeProduct: PropTypes.func.isRequired, // Ensure this prop is marked as required
 };
 
 export default UserProducts;

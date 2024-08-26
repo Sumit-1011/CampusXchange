@@ -4,16 +4,18 @@ import axios from "axios";
 import PostProduct from "./PostProduct";
 import UserProduct from "./UserProduct";
 import Shimmer from "./Shimmer";
+import ProductDetails from "./ProductDetails";
 
 const Home = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]); // New state for filtered products
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [isPostingProduct, setIsPostingProduct] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("date");
-  const [searchQuery, setSearchQuery] = useState(""); // New state for search query
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null); // New state for selected product
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -56,18 +58,17 @@ const Home = () => {
             (product) => product.postedBy.userId._id !== user._id
           );
 
-          // Sort products based on the selected option
           const sortedProducts = filteredProducts.sort((a, b) => {
             if (sortBy === "date") {
-              return new Date(b.createdAt) - new Date(a.createdAt); // Sort by date
+              return new Date(b.createdAt) - new Date(a.createdAt);
             } else if (sortBy === "likes") {
-              return b.likesCount - a.likesCount; // Sort by likes
+              return b.likesCount - a.likesCount;
             }
             return 0;
           });
 
           setProducts(sortedProducts);
-          setFilteredProducts(sortedProducts); // Set filtered products to the sorted products initially
+          setFilteredProducts(sortedProducts);
         } else {
           console.error("Error fetching products", response.data);
         }
@@ -101,6 +102,14 @@ const Home = () => {
     setIsPostingProduct(false);
   };
 
+  const handleProductClick = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleCloseProductDetails = () => {
+    setSelectedProduct(null);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {isPostingProduct && (
@@ -118,8 +127,8 @@ const Home = () => {
             type="text"
             placeholder="Search..."
             className="p-2 rounded"
-            value={searchQuery} // Bind the searchQuery state to the input value
-            onChange={(e) => setSearchQuery(e.target.value)} // Update the search query on each keystroke
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
           <div className="flex items-center space-x-4">
             <select
@@ -155,18 +164,26 @@ const Home = () => {
             .map((_, index) => <Shimmer key={index} />)
         ) : user && filteredProducts.length > 0 ? (
           <UserProduct
-            products={filteredProducts} // Render filtered products
+            products={filteredProducts}
             currentUser={user}
             onDeleteProduct={(productId) =>
               setFilteredProducts((prevProducts) =>
                 prevProducts.filter((product) => product._id !== productId)
               )
             }
+            onProductClick={handleProductClick} // Pass the click handler to UserProduct
           />
         ) : (
           <p>No products available</p>
         )}
       </div>
+
+      {selectedProduct && (
+        <ProductDetails
+          product={selectedProduct}
+          onClose={handleCloseProductDetails}
+        />
+      )}
     </div>
   );
 };

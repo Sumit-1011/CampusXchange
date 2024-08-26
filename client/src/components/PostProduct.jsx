@@ -9,6 +9,7 @@ const PostProduct = ({ setIsPostingProduct, onProductPosted }) => {
     name: "",
     purchaseDateMonth: "",
     purchaseDateYear: "",
+    description: "", // Add description to state
   });
   const [imageFile, setImageFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // Add state to track form submission
@@ -37,6 +38,7 @@ const PostProduct = ({ setIsPostingProduct, onProductPosted }) => {
       formData.append("name", productDetails.name);
       formData.append("purchaseDateMonth", productDetails.purchaseDateMonth);
       formData.append("purchaseDateYear", productDetails.purchaseDateYear);
+      formData.append("description", productDetails.description);
 
       const response = await axios.post(
         "http://localhost:5000/api/products",
@@ -55,7 +57,7 @@ const PostProduct = ({ setIsPostingProduct, onProductPosted }) => {
         const newProduct = response.data.product;
         if (typeof onProductPosted === "function") {
           onProductPosted(newProduct); // Call the function only if it is defined
-          toast.success("Product posted successfully");
+          toast.success("Product posted for Admin Verification");
         } else {
           console.error("Posted product is undefined or invalid:", newProduct);
           toast.error("Error: Posted product is undefined.");
@@ -75,7 +77,7 @@ const PostProduct = ({ setIsPostingProduct, onProductPosted }) => {
   return (
     <div className="bg-white p-6 rounded shadow-md w-full max-w-sm text-center">
       <h1 className="text-3xl font-bold mb-4">Post a Product</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="border-2 border-gray-200">
         <input
           type="file"
           name="image"
@@ -131,6 +133,25 @@ const PostProduct = ({ setIsPostingProduct, onProductPosted }) => {
             autoComplete="off"
             disabled={isSubmitting} // Disable input during submission
           />
+        </div>
+        <div className="relative">
+          <textarea
+            name="description"
+            placeholder="Product Description (max 75 characters)"
+            value={productDetails.description}
+            onChange={handleInputChange}
+            className="w-full p-2 rounded mb-4 resize-none overflow-auto"
+            maxLength="75" // Limit input to 75 characters
+            rows="4"
+            disabled={isSubmitting} // Disable input during submission
+          />
+          <p
+            className={`text-gray-600 text-sm absolute bottom-6 right-1 ${
+              75 - productDetails.description.length <= 15 ? "text-red-500" : ""
+            }`}
+          >
+            {75 - productDetails.description.length}/75
+          </p>
         </div>
         <button
           type="submit"

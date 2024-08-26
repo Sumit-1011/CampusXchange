@@ -44,7 +44,7 @@ const SetAvatar = () => {
         avatar: selectedAvatar,
       });
       localStorage.removeItem("userId"); // Clean up
-      toast.success("Avatar selected successfully!");
+      toast.success("Avatar selected successfully, Registration successful!");
       navigate("/login");
     } catch (error) {
       console.error("Error setting avatar", error);
@@ -56,14 +56,14 @@ const SetAvatar = () => {
 
   return (
     <>
-      {isLoading ? (
-        <img src="loader.gif" alt="loader" className="loader" />
-      ) : (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-          <div className="bg-white p-6 rounded shadow-md w-full max-w-sm text-center">
-            <h2 className="text-2xl font-bold mb-4">Select an Avatar</h2>
-            <div className="flex flex-wrap justify-center mb-4">
-              {avatars.map((avatar, index) => (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-6 rounded shadow-md w-full max-w-sm text-center">
+          <h2 className="text-2xl font-bold mb-4">Select an Avatar</h2>
+          <div className="flex flex-wrap justify-center mb-4 min-h-[96px]">
+            {isLoading ? (
+              <img src="loader.gif" alt="loader" className="loader w-24 h-24" />
+            ) : (
+              avatars.map((avatar, index) => (
                 <img
                   key={index}
                   src={avatar}
@@ -73,24 +73,24 @@ const SetAvatar = () => {
                   }`}
                   onClick={() => setSelectedAvatar(avatar)}
                 />
-              ))}
-            </div>
-            <button
-              onClick={fetchAvatars}
-              className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4"
-            >
-              Refresh
-            </button>
-            <button
-              onClick={handleSelectAvatar}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              disabled={!selectedAvatar || loading} // Disable button if loading or no avatar selected
-            >
-              {loading ? "Processing..." : "Select Avatar"}
-            </button>
+              ))
+            )}
           </div>
+          <button
+            onClick={fetchAvatars}
+            className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4"
+          >
+            Refresh
+          </button>
+          <button
+            onClick={handleSelectAvatar}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            disabled={!selectedAvatar || loading} // Disable button if loading or no avatar selected
+          >
+            {loading ? "Processing..." : "Select Avatar"}
+          </button>
         </div>
-      )}
+      </div>
     </>
   );
 };

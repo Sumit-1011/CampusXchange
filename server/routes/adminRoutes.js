@@ -37,7 +37,7 @@ router.get("/admin/products", async (req, res) => {
       UNAPPROVED_PRODUCTS_CACHE_KEY,
       JSON.stringify(products),
       {
-        EX: 3600, // Cache expires in 1 hour
+        EX: 900, // Cache expires in 1 hour
       }
     );
 

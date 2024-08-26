@@ -29,6 +29,11 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  description: {
+    type: String,
+    maxlength: 75, // Limit description to 75 characters
+    required: false, // Make description optional
+  },
   postedBy: {
     userId: {
       type: mongoose.Schema.Types.ObjectId,

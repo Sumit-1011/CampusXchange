@@ -4,6 +4,7 @@ import axios from "axios";
 import UserProduct from "./UserProduct";
 import PostProduct from "./PostProduct";
 import DeleteAccount from "./DeleteAccount";
+import ProductDetails from "./ProductDetails";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -16,6 +17,7 @@ const Profile = () => {
   const [likedProducts, setLikedProducts] = useState([]);
   const [selectedSection, setSelectedSection] = useState("Profile"); // Track the selected section
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -123,6 +125,14 @@ const Profile = () => {
     }
     setProducts((prevProducts) => [...prevProducts, newProduct]);
     setIsPostingProduct(false);
+  };
+
+  const handleProductClick = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleCloseProductDetails = () => {
+    setSelectedProduct(null);
   };
 
   const handleSignOut = () => {
@@ -298,8 +308,16 @@ const Profile = () => {
                     prevProducts.filter((product) => product._id !== productId)
                   );
                 }}
+                onProductClick={handleProductClick}
               />
             </div>
+            {selectedProduct && (
+              <ProductDetails
+                product={selectedProduct}
+                onClose={handleCloseProductDetails}
+                hidePostedBy={true}
+              />
+            )}
           </div>
         )}
         {selectedSection === "Your Favorites" && (

@@ -6,6 +6,7 @@ const AdminProducts = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [admin, setAdmin] = useState(true);
 
   useEffect(() => {
     const fetchUnapprovedProducts = async () => {
@@ -23,9 +24,11 @@ const AdminProducts = () => {
           setFilteredProducts(response.data.products);
         } else {
           console.error("Error fetching products", response.data.message);
+          setAdmin(false);
         }
       } catch (error) {
         console.error("Error fetching products", error);
+        setAdmin(false);
       } finally {
         setLoading(false);
       }
@@ -103,7 +106,7 @@ const AdminProducts = () => {
     <div className="container mx-auto p-4 h-screen overflow-auto">
       <div className="fixed top-0 left-0 right-0 bg-white z-10 shadow-lg">
         <h1 className="text-3xl font-bold text-center p-4">
-          Unapproved Products
+          {admin ? "Unapproved Products" : "Chala Ja Yaha Se!"}
         </h1>
         <div className="mb-3 p-4">
           <input
@@ -131,6 +134,9 @@ const AdminProducts = () => {
             </p>
             <p className="text-gray-500 mb-4">
               Email: {product?.postedBy?.userId?.email || "Unknown Email"}
+            </p>
+            <p className="text-gray-500 mb-4">
+              Description: {product.description || "No description available"}
             </p>
             <div className="flex justify-between mt-4">
               <button

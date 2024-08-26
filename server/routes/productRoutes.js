@@ -55,7 +55,7 @@ router.get("/products", verifyToken, async (req, res) => {
 
     // Cache the MongoDB result in Redis with expiration time
     await redisClient.set(cacheKey, JSON.stringify(productsWithLikes), {
-      EX: 3600, // Expire in 1 hour
+      EX: 900, // Expire in 15 min
     });
 
     res.status(200).json({ status: "ok", products: productsWithLikes });
@@ -72,13 +72,22 @@ router.post(
   upload.single("image"),
   async (req, res) => {
     try {
-      const { price, name, purchaseDateMonth, purchaseDateYear } = req.body;
+      const { price, name, purchaseDateMonth, purchaseDateYear, description } =
+        req.body;
       const userId = req.user._id;
 
       if (!price || !name || !purchaseDateMonth || !purchaseDateYear) {
         return res
           .status(400)
-          .json({ status: "error", message: "All fields are required" });
+          .json({ status: "error", message: "Fill the required fields" });
+      }
+
+      // Validate description length
+      if (description && description.length > 75) {
+        return res.status(400).json({
+          status: "error",
+          message: "Description must be 75 characters or less",
+        });
       }
 
       // Upload image to Cloudinary if available
@@ -118,6 +127,7 @@ router.post(
           userId: req.user._id,
         },
         isApproved: false,
+        description: description,
       });
 
       await newProduct.save();
