@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import config from "..config/";
+import config from "../config";
 import UserProduct from "./UserProduct";
 import PostProduct from "./PostProduct";
 import DeleteAccount from "./DeleteAccount";

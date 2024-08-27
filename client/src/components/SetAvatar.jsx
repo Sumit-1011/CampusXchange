@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
-import config from "..config/";
+import config from "../config";
 
 const SetAvatar = () => {
   const [avatars, setAvatars] = useState([]);
