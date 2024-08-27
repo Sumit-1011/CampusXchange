@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
+import config from "./config";
 
 const SetAvatar = () => {
   const [avatars, setAvatars] = useState([]);
@@ -19,7 +20,7 @@ const SetAvatar = () => {
 
   const fetchAvatars = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/avatars");
+      const response = await axios.get(`${config.apiBaseUrl}/api/avatars`);
       setAvatars(response.data);
     } catch (error) {
       console.error("Error fetching avatars", error);
@@ -39,7 +40,7 @@ const SetAvatar = () => {
     setLoading(true); // Set loading to true
 
     try {
-      await axios.post("http://localhost:5000/api/setAvatar", {
+      await axios.post("${config.apiBaseUrl}/api/setAvatar", {
         userId,
         avatar: selectedAvatar,
       });

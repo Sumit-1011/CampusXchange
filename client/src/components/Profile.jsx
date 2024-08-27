@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import config from "./config";
 import UserProduct from "./UserProduct";
 import PostProduct from "./PostProduct";
 import DeleteAccount from "./DeleteAccount";
@@ -28,7 +29,7 @@ const Profile = () => {
           return;
         }
 
-        const response = await axios.get("http://localhost:5000/api/user", {
+        const response = await axios.get(`${config.apiBaseUrl}/api/user`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -49,7 +50,7 @@ const Profile = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "http://localhost:5000/api/user/products",
+          `${config.apiBaseUrl}/api/user/products`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -75,7 +76,7 @@ const Profile = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "http://localhost:5000/api/user/favorites",
+          `${config.apiBaseUrl}/api/user/favorites`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -148,7 +149,7 @@ const Profile = () => {
         return;
       }
 
-      const response = await axios.delete("http://localhost:5000/api/user", {
+      const response = await axios.delete(`${config.apiBaseUrl}/api/user`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

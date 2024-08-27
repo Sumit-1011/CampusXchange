@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import config from "./config";
 import ProductDetails from "./ProductDetails"; // Import the ProductDetails component
 
 const AdminProducts = () => {
@@ -15,7 +16,7 @@ const AdminProducts = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "http://localhost:5000/api/admin/products",
+          `${config.apiBaseUrl}/api/admin/products`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -43,7 +44,7 @@ const AdminProducts = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `http://localhost:5000/api/admin/products/${productId}/approve`,
+        `${config.apiBaseUrl}/api/admin/products/${productId}/approve`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -67,7 +68,7 @@ const AdminProducts = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.delete(
-        `http://localhost:5000/api/admin/products/${productId}/deny`,
+        `${config.apiBaseUrl}/api/admin/products/${productId}/deny`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

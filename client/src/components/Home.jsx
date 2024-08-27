@@ -4,6 +4,7 @@ import axios from "axios";
 import PostProduct from "./PostProduct";
 import UserProduct from "./UserProduct";
 import Shimmer from "./Shimmer";
+import config from "./config";
 import ProductDetails from "./ProductDetails";
 
 const Home = () => {
@@ -26,7 +27,7 @@ const Home = () => {
           return;
         }
 
-        const response = await axios.get("http://localhost:5000/api/user", {
+        const response = await axios.get(`${config.apiBaseUrl}/api/user`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -49,7 +50,7 @@ const Home = () => {
       if (!user) return;
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/api/products", {
+        const response = await axios.get(`${config.apiBaseUrl}/api/products`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

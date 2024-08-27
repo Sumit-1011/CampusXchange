@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import config from "./config";
 import { useNavigate, Link } from "react-router-dom";
 
 const Register = () => {
@@ -61,7 +62,7 @@ const Register = () => {
       if (username && isUsernameValid) {
         try {
           const response = await axios.get(
-            "http://localhost:5000/api/check-username",
+            `${config.apiBaseUrl}/api/check-username`,
             { params: { username } }
           );
 
@@ -101,7 +102,7 @@ const Register = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/otp/send-otp",
+        `${config.apiBaseUrl}/api/otp/send-otp`,
         {
           username,
           email,
@@ -129,7 +130,7 @@ const Register = () => {
   const handleOtpVerification = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/otp/verify-otp",
+        `${config.apiBaseUrl}/api/otp/verify-otp`,
         {
           email,
           otp,

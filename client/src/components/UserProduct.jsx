@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import axios from "axios";
+import config from "./config";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -29,7 +30,7 @@ const UserProducts = ({
       setDeletingProductId(productId);
       const token = localStorage.getItem("token");
       const response = await axios.delete(
-        `http://localhost:5000/api/products/${productId}`,
+        `${config.apiBaseUrl}/api/products/${productId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           data: { imageId },
@@ -65,7 +66,7 @@ const UserProducts = ({
 
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `http://localhost:5000/api/products/${productId}/like`,
+        `${config.apiBaseUrl}/api/products/${productId}/like`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

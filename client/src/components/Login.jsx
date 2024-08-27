@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import config from "./config";
 import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
@@ -20,7 +21,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:5000/api/login", {
+      const response = await axios.post(`${config.apiBaseUrl}/api/login`, {
         email,
         password,
       });

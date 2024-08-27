@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import config from "./config";
 import { toast } from "react-toastify";
 import PropTypes from "prop-types"; // Import PropTypes
 
@@ -53,7 +54,7 @@ const PostProduct = ({ setIsPostingProduct, onProductPosted }) => {
       formData.append("description", productDetails.description);
 
       const response = await axios.post(
-        "http://localhost:5000/api/products",
+        `${config.apiBaseUrl}/api/products`,
         formData,
         {
           headers: {
