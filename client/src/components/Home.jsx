@@ -147,12 +147,13 @@ const Home = () => {
               Post a Product
             </button>
             {user?.avatarImage && (
-              <img
-                src={user.avatarImage}
-                alt="User Profile"
-                className="w-10 h-10 rounded-full cursor-pointer mr-4"
-                onClick={() => navigate("/profile")}
-              />
+              <div onClick={() => navigate("/profile")}>
+                <img
+                  src={user.avatarImage}
+                  alt="User Profile"
+                  className="w-10 h-10 rounded-full cursor-pointer mr-4"
+                />
+              </div>
             )}
           </div>
         </div>

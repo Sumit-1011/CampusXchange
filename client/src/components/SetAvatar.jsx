@@ -40,7 +40,7 @@ const SetAvatar = () => {
     setLoading(true); // Set loading to true
 
     try {
-      await axios.post("${config.apiBaseUrl}/api/setAvatar", {
+      await axios.post(`${config.apiBaseUrl}/api/setAvatar`, {
         userId,
         avatar: selectedAvatar,
       });

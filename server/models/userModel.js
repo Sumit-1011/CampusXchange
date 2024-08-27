@@ -28,7 +28,8 @@ const userSchema = new mongoose.Schema({
   },
   avatarImage: {
     type: String,
-    default: "",
+    default:
+      "https://res.cloudinary.com/dt6chp57x/image/upload/v1724773028/Default_pfp_p3buoy.jpg",
   },
   cloudinaryPublicId: {
     type: String, // The public_id for the avatar image on Cloudinary

@@ -43,6 +43,25 @@ router.get("/check-username", async (req, res) => {
   }
 });
 
+router.get("/check-email", async (req, res) => {
+  const { email } = req.query;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (user) {
+      return res.json({
+        status: "error",
+        message: "Email is already registered",
+      });
+    }
+
+    res.json({ status: "ok", message: "Email is available" });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+});
+
 // Get products posted by the authenticated user
 router.get("/user/products", verifyToken, async (req, res) => {
   try {
@@ -152,14 +171,15 @@ router.post("/setAvatar", async (req, res) => {
     }
 
     // Upload new avatar to Cloudinary
-    const result = await cloudinary.uploader.upload(avatar, {
+    const uploadResponse = await cloudinary.uploader.upload(avatar, {
       folder: "profile",
       resource_type: "image",
+      format: "svg", // Since it's an SVG, ensure the format is correct
     });
 
     // Update user document
-    user.avatarImage = result.secure_url;
-    user.cloudinaryPublicId = result.public_id;
+    user.avatarImage = uploadResponse.secure_url;
+    user.cloudinaryPublicId = uploadResponse.public_id;
     user.isAvatarImageSet = true;
 
     await user.save();
@@ -238,7 +258,7 @@ router.delete("/user", verifyToken, async (req, res) => {
     const products = await Product.find({ "postedBy.userId": userId });
 
     // Delete the user's profile image from Cloudinary if it exists
-    if (user.cloudinaryPublicId) {
+    if (user.cloudinaryPublicId && isAvatarImageSet) {
       await cloudinary.uploader.destroy(user.cloudinaryPublicId);
     }
 

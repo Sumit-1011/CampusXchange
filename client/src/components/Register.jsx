@@ -101,6 +101,17 @@ const Register = () => {
     setIsOtpButtonDisabled(true); // Disable the OTP sending button after click
 
     try {
+      const emailCheckResponse = await axios.get(
+        `${config.apiBaseUrl}/api/check-email`,
+        { params: { email } }
+      );
+
+      if (emailCheckResponse.data.status !== "ok") {
+        toast.error("Email is already registered");
+        setIsOtpButtonDisabled(false); // Re-enable the OTP button if email is already registered
+        return;
+      }
+
       const response = await axios.post(
         `${config.apiBaseUrl}/api/otp/send-otp`,
         {
