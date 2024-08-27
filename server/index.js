@@ -1,7 +1,6 @@
 require("dotenv").config();
 const express = require("express");
 const { connectToMongoDB } = require("./config/database");
-const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const redisClient = require("./utils/redisClient"); // Import Redis client
@@ -24,13 +23,6 @@ app.use("/api", userRoutes);
 app.use("/api", productRoutes);
 app.use("/api", adminRoutes);
 app.use("/api/otp", otpRoutes);
-
-// Serve static files from the React app (optional)
-app.use(express.static(path.join(__dirname, "public", "dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "dist", "index.html"));
-});
 
 // Example of using the Redis client
 app.get("/cache", async (req, res) => {
