@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 const redisClient = require("./utils/redisClient"); // Import Redis client
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
@@ -32,8 +32,6 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public/dist/index.html"));
 });
 
-const port = process.env.PORT || 5000;
-
 // Example of using the Redis client
 app.get("/cache", async (req, res) => {
   try {
@@ -48,8 +46,8 @@ app.get("/cache", async (req, res) => {
 async function startServer() {
   try {
     await connectToMongoDB();
-    app.listen(port, () => {
-      console.log(`Server is listening on http://localhost:${port}`);
+    app.listen(PORT, () => {
+      console.log(`Server is listening on http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error("Failed to connect to MongoDB", error);
