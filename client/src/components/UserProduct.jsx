@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import axios from "axios";
-import config from "./config";
+import config from "..config/";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

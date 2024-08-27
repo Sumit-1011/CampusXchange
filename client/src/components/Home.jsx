@@ -4,7 +4,7 @@ import axios from "axios";
 import PostProduct from "./PostProduct";
 import UserProduct from "./UserProduct";
 import Shimmer from "./Shimmer";
-import config from "./config";
+import config from "..config/";
 import ProductDetails from "./ProductDetails";
 
 const Home = () => {
