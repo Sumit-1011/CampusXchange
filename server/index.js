@@ -26,7 +26,7 @@ app.use("/api", adminRoutes);
 app.use("/api/otp", otpRoutes);
 
 // Serve static files from the React app (optional)
-app.use(express.static(path.join(__dirname, "public/dist")));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public/dist/index.html"));
@@ -47,7 +47,7 @@ async function startServer() {
   try {
     await connectToMongoDB();
     app.listen(PORT, () => {
-      console.log(`Server is listening on http://localhost:${PORT}`);
+      console.log(`Server is listening on port ${PORT}`);
     });
   } catch (error) {
     console.error("Failed to connect to MongoDB", error);
