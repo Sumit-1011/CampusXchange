@@ -26,10 +26,10 @@ app.use("/api", adminRoutes);
 app.use("/api/otp", otpRoutes);
 
 // Serve static files from the React app (optional)
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public", "dist")));
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "public", "dist", "index.html"));
 });
 
 // Example of using the Redis client
