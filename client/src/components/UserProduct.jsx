@@ -126,14 +126,14 @@ const UserProducts = ({
         <div key={product._id} className="bg-gray-50 p-4 rounded shadow-md">
           <div className="relative">
             <img
-              src={product.image || "chair.jpg"}
+              src={product.image || "default_img.png"}
               alt={product.name || "Product"}
               className="w-full h-36 object-cover mb-2 rounded-lg"
             />
             {/* Add the eye icon to trigger product details */}
             <button
               onClick={() => handleProductClick(product)}
-              className="absolute top-22 right-2 text-gray-600 hover:text-gray-800 text-xl transition-transform transform hover:scale-125 border border-gray-600 rounded-full p-0.5 hover:border-gray-800"
+              className="absolute top-22 right-2 text-xl transition-transform transform hover:scale-125 border border-gray-600 rounded-full p-0.5 hover:border-gray-800"
             >
               👁️
             </button>

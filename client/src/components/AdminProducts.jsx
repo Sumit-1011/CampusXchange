@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import ProductDetails from "./ProductDetails"; // Import the ProductDetails component
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -7,6 +8,7 @@ const AdminProducts = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [admin, setAdmin] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState(null); // New state for selected product
 
   useEffect(() => {
     const fetchUnapprovedProducts = async () => {
@@ -98,6 +100,14 @@ const AdminProducts = () => {
     }
   };
 
+  const handleView = (product) => {
+    setSelectedProduct(product); // Set the selected product for viewing
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedProduct(null); // Close the ProductDetails view
+  };
+
   if (loading) {
     return <div className="text-center">Loading...</div>;
   }
@@ -106,17 +116,19 @@ const AdminProducts = () => {
     <div className="container mx-auto p-4 h-screen overflow-auto">
       <div className="fixed top-0 left-0 right-0 bg-white z-10 shadow-lg">
         <h1 className="text-3xl font-bold text-center p-4">
-          {admin ? "Unapproved Products" : "Chala Ja Yaha Se!"}
+          {admin ? "Unapproved Products" : "You are not an Admin!"}
         </h1>
-        <div className="mb-3 p-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearch}
-            placeholder="Search products..."
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        {admin && (
+          <div className="mb-3 p-4">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearch}
+              placeholder="Search products..."
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        )}
       </div>
 
       <div className="pt-32 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -151,10 +163,24 @@ const AdminProducts = () => {
               >
                 Deny
               </button>
+              <button
+                onClick={() => handleView(product)}
+                className="px-4 py-2 text-xl transition-transform transform hover:scale-110 border border-gray-600 rounded-full p-0.5 hover:border-gray-800"
+              >
+                👁️
+              </button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Render ProductDetails if a product is selected */}
+      {selectedProduct && (
+        <ProductDetails
+          product={selectedProduct}
+          onClose={handleCloseDetails}
+        />
+      )}
     </div>
   );
 };

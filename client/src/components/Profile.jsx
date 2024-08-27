@@ -200,7 +200,7 @@ const Profile = () => {
           onClick={() => navigate("/")}
           className="mb-4 w-full text-left flex items-center justify-center"
         >
-          <img src="cxclogo.png" alt="Home" className="h-20 w-60" />
+          <img src="cxclogo.png" alt="Home" className="h-16 w-72" />
         </button>
         {user.avatarImage && (
           <img
@@ -209,7 +209,10 @@ const Profile = () => {
             className="w-24 h-24 rounded-full my-4 mt-8"
           />
         )}
-        <p className="text-xl mb-16">Username: {user.username}</p>
+        <p className="text-xl mb-16">
+          <span className="text-lg">Username: </span>
+          <span className="font-semibold underline">{user.username}</span>
+        </p>
         <button
           onClick={() => setSelectedSection("Profile")}
           className={`bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4 w-full text-left ${
@@ -279,7 +282,7 @@ const Profile = () => {
         {selectedSection === "Your Products" && (
           <div className="flex flex-col h-full">
             {/* Top 1/3rd with yellow background and space for search bar and Post Product button */}
-            <div className="h-1/3 bg-yellow-400 flex items-center justify-between px-6">
+            <div className="h-1/3 bg-[#BBE9FF] flex items-center justify-between px-6">
               {/* Search Bar on the left side */}
               <input
                 type="text"
@@ -323,7 +326,7 @@ const Profile = () => {
         {selectedSection === "Your Favorites" && (
           <div className="flex flex-col h-full">
             {/* Top 1/3rd with yellow background and space for search bar and Post Product button */}
-            <div className="h-1/3 bg-yellow-400 flex items-center justify-between px-6">
+            <div className="h-1/3 bg-[#BBE9FF] flex items-center justify-between px-6">
               {/* Search Bar on the left side */}
               <input
                 type="text"

@@ -11,7 +11,12 @@ const PostProduct = ({ setIsPostingProduct, onProductPosted }) => {
     purchaseDateYear: "",
     description: "", // Add description to state
   });
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFiles, setImageFiles] = useState({
+    mainImage: null,
+    additionalImage1: null,
+    additionalImage2: null,
+  });
+  const [showAdditionalImages, setShowAdditionalImages] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // Add state to track form submission
 
   const handleInputChange = (e) => {
@@ -20,7 +25,8 @@ const PostProduct = ({ setIsPostingProduct, onProductPosted }) => {
   };
 
   const handleFileChange = (e) => {
-    setImageFile(e.target.files[0]);
+    const { name, files } = e.target;
+    setImageFiles({ ...imageFiles, [name]: files[0] });
   };
 
   const handleSubmit = async (e) => {
@@ -33,7 +39,13 @@ const PostProduct = ({ setIsPostingProduct, onProductPosted }) => {
       }
 
       const formData = new FormData();
-      formData.append("image", imageFile);
+      formData.append("image", imageFiles.mainImage);
+      if (imageFiles.additionalImage1) {
+        formData.append("additionalImage1", imageFiles.additionalImage1);
+      }
+      if (imageFiles.additionalImage2) {
+        formData.append("additionalImage2", imageFiles.additionalImage2);
+      }
       formData.append("price", productDetails.price);
       formData.append("name", productDetails.name);
       formData.append("purchaseDateMonth", productDetails.purchaseDateMonth);
@@ -50,8 +62,6 @@ const PostProduct = ({ setIsPostingProduct, onProductPosted }) => {
           },
         }
       );
-
-      //console.log("Product Posted Response:", response.data); // Log the response
 
       if (response.data.status === "ok") {
         const newProduct = response.data.product;
@@ -80,14 +90,48 @@ const PostProduct = ({ setIsPostingProduct, onProductPosted }) => {
       <form onSubmit={handleSubmit} className="border-2 border-gray-200">
         <input
           type="file"
-          name="image"
+          name="mainImage"
           accept="image/*"
           onChange={handleFileChange}
-          className="w-full p-2 rounded mb-4"
+          className="w-full p-2 rounded mb-2"
           required
           autoComplete="off"
           disabled={isSubmitting} // Disable input during submission
         />
+        {showAdditionalImages && (
+          <>
+            <input
+              type="file"
+              name="additionalImage1"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full p-2 rounded mb-2"
+              autoComplete="off"
+              disabled={isSubmitting} // Disable input during submission
+            />
+            <input
+              type="file"
+              name="additionalImage2"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full p-2 rounded mb-2"
+              autoComplete="off"
+              disabled={isSubmitting} // Disable input during submission
+            />
+          </>
+        )}
+        {!showAdditionalImages && (
+          <div className="flex justify-end pr-3">
+            <button
+              type="button"
+              onClick={() => setShowAdditionalImages(true)}
+              className="text-blue-500 hover:underline mb-2"
+              disabled={isSubmitting}
+            >
+              Add more images
+            </button>
+          </div>
+        )}
         <input
           type="text"
           name="price"

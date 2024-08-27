@@ -175,6 +175,7 @@ const Register = () => {
                 !isUsernameAvailable && "border-red-500"
               }`}
               required
+              autoComplete="new-username"
             />
             {!usernameError && username && !isUsernameAvailable && (
               <span className="absolute top-9 right-1 flex items-center text-red-500">
@@ -200,6 +201,7 @@ const Register = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
               required
+              autoComplete="new-email"
               disabled={!isUsernameAvailable}
             />
           </div>
@@ -218,6 +220,7 @@ const Register = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
               required
+              autoComplete="new-password"
               disabled={!isUsernameAvailable}
             />
             <button

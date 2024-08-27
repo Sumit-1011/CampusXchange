@@ -69,7 +69,11 @@ router.get("/products", verifyToken, async (req, res) => {
 router.post(
   "/products",
   verifyToken,
-  upload.single("image"),
+  upload.fields([
+    { name: "image", maxCount: 1 }, // Main image
+    { name: "additionalImage1", maxCount: 1 }, // Optional additional image 1
+    { name: "additionalImage2", maxCount: 1 }, // Optional additional image 2
+  ]),
   async (req, res) => {
     try {
       const { price, name, purchaseDateMonth, purchaseDateYear, description } =
@@ -90,22 +94,26 @@ router.post(
         });
       }
 
-      // Upload image to Cloudinary if available
+      // Helper function to upload image to Cloudinary
+      const uploadToCloudinary = (file) => {
+        return new Promise((resolve, reject) => {
+          cloudinary.uploader
+            .upload_stream({ resource_type: "image" }, (error, result) => {
+              if (error) {
+                return reject(new Error("Cloudinary upload failed"));
+              }
+              resolve(result);
+            })
+            .end(file.buffer);
+        });
+      };
+
+      // Upload the main image (mandatory)
       let imageUrl = "";
       let cloudinaryPublicId = "";
-      if (req.file) {
+      if (req.files["image"]) {
         try {
-          const result = await new Promise((resolve, reject) => {
-            cloudinary.uploader
-              .upload_stream({ resource_type: "image" }, (error, result) => {
-                if (error) {
-                  return reject(new Error("Cloudinary upload failed"));
-                }
-                resolve(result);
-              })
-              .end(req.file.buffer);
-          });
-
+          const result = await uploadToCloudinary(req.files["image"][0]);
           imageUrl = result.secure_url;
           cloudinaryPublicId = result.public_id;
         } catch (error) {
@@ -113,6 +121,54 @@ router.post(
           return res
             .status(500)
             .json({ status: "error", message: "Image upload failed" });
+        }
+      } else {
+        return res
+          .status(400)
+          .json({ status: "error", message: "Main image is required" });
+      }
+
+      // Upload additionalImage1 (optional)
+      let additionalImageUrl1 = "";
+      let additionalCloudinaryPublicId1 = "";
+      if (req.files["additionalImage1"]) {
+        try {
+          const result = await uploadToCloudinary(
+            req.files["additionalImage1"][0]
+          );
+          additionalImageUrl1 = result.secure_url;
+          additionalCloudinaryPublicId1 = result.public_id;
+        } catch (error) {
+          console.error(
+            "Error uploading additionalImage1 to Cloudinary:",
+            error
+          );
+          return res.status(500).json({
+            status: "error",
+            message: "Additional image 1 upload failed",
+          });
+        }
+      }
+
+      // Upload additionalImage2 (optional)
+      let additionalImageUrl2 = "";
+      let additionalCloudinaryPublicId2 = "";
+      if (req.files["additionalImage2"]) {
+        try {
+          const result = await uploadToCloudinary(
+            req.files["additionalImage2"][0]
+          );
+          additionalImageUrl2 = result.secure_url;
+          additionalCloudinaryPublicId2 = result.public_id;
+        } catch (error) {
+          console.error(
+            "Error uploading additionalImage2 to Cloudinary:",
+            error
+          );
+          return res.status(500).json({
+            status: "error",
+            message: "Additional image 2 upload failed",
+          });
         }
       }
 
@@ -123,11 +179,15 @@ router.post(
         purchaseDateYear,
         image: imageUrl,
         cloudinaryPublicId,
+        additionalImage1: additionalImageUrl1,
+        additionalCloudinaryPublicId1,
+        additionalImage2: additionalImageUrl2,
+        additionalCloudinaryPublicId2,
         postedBy: {
           userId: req.user._id,
         },
         isApproved: false,
-        description: description,
+        description,
       });
 
       await newProduct.save();
@@ -135,7 +195,6 @@ router.post(
       // Clear relevant cache entries
       const cacheKeys = [
         `products_${userId}_date`,
-        `products_${userId}_likes`,
         `products_${userId}_default`,
       ];
 
@@ -187,11 +246,7 @@ router.post("/products/:id/like", verifyToken, async (req, res) => {
     await product.save();
 
     // Clear relevant cache entries
-    const cacheKeys = [
-      `products_${userId}_date`,
-      `products_${userId}_likes`,
-      `products_${userId}_default`,
-    ];
+    const cacheKeys = [`products_${userId}_date`, `products_${userId}_default`];
 
     for (const key of cacheKeys) {
       try {
@@ -233,9 +288,15 @@ router.delete("/products/:id", verifyToken, async (req, res) => {
     }
 
     // Delete the image from Cloudinary if it exists
-    if (product.cloudinaryPublicId) {
+    const cloudinaryPublicIds = [
+      product.cloudinaryPublicId,
+      product.additionalCloudinaryPublicId1,
+      product.additionalCloudinaryPublicId2,
+    ].filter(Boolean);
+
+    for (const publicId of cloudinaryPublicIds) {
       try {
-        await cloudinary.uploader.destroy(product.cloudinaryPublicId);
+        await cloudinary.uploader.destroy(publicId);
       } catch (error) {
         console.error("Error deleting image from Cloudinary:", error);
         return res
@@ -248,17 +309,25 @@ router.delete("/products/:id", verifyToken, async (req, res) => {
     await product.deleteOne();
 
     // Clear relevant cache entries
-    const cacheKeys = [
-      `products_${userId}_date`,
-      `products_${userId}_likes`,
-      `products_${userId}_default`,
-    ];
-
+    const cacheKeys = await redisClient.keys("products_*");
     for (const key of cacheKeys) {
       try {
-        await redisClient.del(key);
+        const cachedProducts = await redisClient.get(key);
+        if (cachedProducts) {
+          const productsArray = JSON.parse(cachedProducts);
+          const updatedProducts = productsArray.filter(
+            (item) => item._id !== productId
+          );
+
+          if (updatedProducts.length !== productsArray.length) {
+            // If the product was found and removed, update the cache
+            await redisClient.set(key, JSON.stringify(updatedProducts), {
+              EX: 900, // Expire in 15 min
+            });
+          }
+        }
       } catch (error) {
-        console.error(`Failed to clear cache for key ${key}`, error);
+        console.error(`Failed to clear product from cache key ${key}`, error);
       }
     }
 

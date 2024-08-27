@@ -21,8 +21,24 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true, // Make image optional
   },
+  additionalImage1: {
+    type: String, // Optional additional image 1
+    required: false,
+  },
+  additionalImage2: {
+    type: String, // Optional additional image 2
+    required: false,
+  },
   cloudinaryPublicId: {
     type: String, // Store the public_id of the image
+    required: false,
+  },
+  additionalCloudinaryPublicId1: {
+    type: String, // Store the public_id of the additional image 1
+    required: false,
+  },
+  additionalCloudinaryPublicId2: {
+    type: String, // Store the public_id of the additional image 2
     required: false,
   },
   isApproved: {

@@ -95,9 +95,15 @@ router.delete("/admin/products/:id/deny", async (req, res) => {
     }
 
     // Delete the image from Cloudinary if it exists
-    if (product.cloudinaryPublicId) {
+    const cloudinaryPublicIds = [
+      product.cloudinaryPublicId,
+      product.additionalCloudinaryPublicId1,
+      product.additionalCloudinaryPublicId2,
+    ].filter(Boolean);
+
+    for (const publicId of cloudinaryPublicIds) {
       try {
-        await cloudinary.uploader.destroy(product.cloudinaryPublicId);
+        await cloudinary.uploader.destroy(publicId);
       } catch (error) {
         console.error("Error deleting image from Cloudinary:", error);
         return res

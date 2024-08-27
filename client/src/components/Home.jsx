@@ -121,7 +121,7 @@ const Home = () => {
         </div>
       )}
 
-      <div className={`bg-yellow-400 p-4 ${isPostingProduct ? "blur" : ""}`}>
+      <div className={`bg-[#BBE9FF] p-4 ${isPostingProduct ? "blur" : ""}`}>
         <div className="flex justify-between items-center mb-4">
           <input
             type="text"
