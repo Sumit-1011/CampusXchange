@@ -11,7 +11,12 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(
   cors({
-    origin: "https://campusxchange-client.onrender.com",
+    origin: [
+      "https://campusxchange-client.onrender.com",
+      "http://localhost:5173",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"], // Allow the necessary HTTP methods
+    credentials: true,
   })
 );
 app.use(bodyParser.json());
