@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import config from "../config";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -13,6 +14,7 @@ const UserProducts = ({
   hidePostedBy,
 }) => {
   const [deletingProductId, setDeletingProductId] = useState(null);
+  const navigate = useNavigate();
 
   const [likes, setLikes] = useState(
     products.reduce((acc, product) => {
@@ -113,6 +115,59 @@ const UserProducts = ({
     onProductClick(productWithLikes);
   };
 
+  const handleChatClick = async (product) => {
+    // Assuming currentUser is user1 and product.postedBy.userId is user2
+    const user1Id = currentUser?._id; // Current logged-in user
+    const user2Id =
+      product?.postedBy?.userId?._id ||
+      product?.postedBy?._id ||
+      product?.postedBy; // Seller or other user
+
+    // Debugging logs for validation
+    console.log("User1 ID:", user1Id);
+    console.log("User2 ID:", user2Id);
+
+    // Validate both user IDs before calling onStartChat
+    if (user1Id && user2Id) {
+      try {
+        // Call the backend to start or retrieve a chat
+        const token = localStorage.getItem("token"); // Retrieve token from localStorage
+        if (!token) {
+          console.error("No token found. Please log in.");
+          return;
+        }
+        const response = await axios.post(
+          `${config.apiBaseUrl}/api/chat/start-chat`,
+          {
+            user1Id,
+            user2Id,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` }, // Include token in Authorization header
+          }
+        );
+        console.log("Response from /start-chat:", response.data);
+
+        if (response.data.status === "ok") {
+          const chatId = response.data.chat._id; // Extract chat ID
+          console.log("Navigating to chat:", chatId);
+          navigate(`/chat/${chatId}`, {
+            state: { contact: response.data.chat },
+          }); // Navigate to chat page using chat ID
+        } else {
+          console.error(
+            "Failed to start or retrieve chat:",
+            response.data.message
+          );
+        }
+      } catch (error) {
+        console.error("Error starting or retrieving chat:", error);
+      }
+    } else {
+      console.error("Missing user1Id or user2Id for chat.");
+    }
+  };
+
   if (!Array.isArray(products)) {
     return <p>Invalid products data</p>;
   }
@@ -131,13 +186,22 @@ const UserProducts = ({
               alt={product.name || "Product"}
               className="w-full h-36 object-cover mb-2 rounded-lg"
             />
-            {/* Add the eye icon to trigger product details */}
-            <button
-              onClick={() => handleProductClick(product)}
-              className="absolute top-22 right-2 text-xl transition-transform transform hover:scale-125 border border-gray-600 rounded-full p-0.5 hover:border-gray-800"
-            >
-              👁️
-            </button>
+            <div className="absolute top-38 right-1 flex space-x-2">
+              {/* Eye icon for viewing product details */}
+              <button
+                onClick={() => handleProductClick(product)}
+                className="text-xl transition-transform transform hover:scale-125 border border-gray-600 rounded-full p-0.5 hover:border-gray-800"
+              >
+                👁️
+              </button>
+              {/* Chat icon for initiating chat */}
+              <button
+                onClick={() => handleChatClick(product)}
+                className="text-xl transition-transform transform hover:scale-125 border border-gray-600 rounded-full p-0.5 hover:border-gray-800"
+              >
+                💬
+              </button>
+            </div>
           </div>
           <h2 className="text-xl font-bold">
             {product.name || "Unnamed Product"}

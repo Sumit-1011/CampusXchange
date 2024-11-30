@@ -16,8 +16,9 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("date");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState(null); // New state for selected product
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
+  // Fetch current user data on mount
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -45,9 +46,11 @@ const Home = () => {
     fetchUserData();
   }, [navigate]);
 
+  // Fetch products based on the current user
   useEffect(() => {
     const fetchProducts = async () => {
       if (!user) return;
+      setLoading(true);
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(`${config.apiBaseUrl}/api/products`, {
@@ -83,6 +86,7 @@ const Home = () => {
     fetchProducts();
   }, [user, sortBy]);
 
+  // Filter products based on search query
   useEffect(() => {
     const lowercasedQuery = searchQuery.toLowerCase();
     const filtered = products.filter((product) =>
@@ -91,6 +95,7 @@ const Home = () => {
     setFilteredProducts(filtered);
   }, [searchQuery, products]);
 
+  // Handle product posting
   const handleProductPosted = (newProduct) => {
     if (
       !newProduct ||
@@ -99,16 +104,59 @@ const Home = () => {
     ) {
       return;
     }
-    setProducts(products);
+    setProducts([...products, newProduct]);
     setIsPostingProduct(false);
   };
 
+  // Handle product click to view details
   const handleProductClick = (product) => {
     setSelectedProduct(product);
   };
 
   const handleCloseProductDetails = () => {
     setSelectedProduct(null);
+  };
+
+  // Handle starting a chat
+  const handleStartChat = async (user1Id, user2Id) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        console.error("No token found. Please log in.");
+        return;
+      }
+
+      const response = await axios.post(
+        `${config.apiBaseUrl}/api/chat/start-chat`,
+        { user1Id, user2Id },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.status === "ok") {
+        const chat = response.data.chat;
+        console.log("Chat started or retrieved:", chat);
+        console.log("Navigating to chat:", `/chat/${chat._id}`);
+        navigate(`/chat/${chat._id}`, {
+          state: { chatId: chat._id, contactId: user2Id },
+        });
+      } else {
+        console.error(
+          "Failed to start or retrieve chat:",
+          response.data.message
+        );
+      }
+    } catch (error) {
+      if (error.response) {
+        console.error("Server error:", error.response.data.message);
+      } else if (error.request) {
+        console.error("No response from server:", error.request);
+      } else {
+        console.error("Error starting or retrieving chat:", error.message);
+      }
+    }
   };
 
   return (
@@ -173,7 +221,8 @@ const Home = () => {
                 prevProducts.filter((product) => product._id !== productId)
               )
             }
-            onProductClick={handleProductClick} // Pass the click handler to UserProduct
+            onProductClick={handleProductClick}
+            onStartChat={handleStartChat}
           />
         ) : (
           <p>No products available</p>
