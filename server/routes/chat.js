@@ -68,7 +68,6 @@ router.post("/start-chat", verifyToken, async (req, res) => {
 // Fetch recent messages, first from cache then fallback to MongoDB
 router.get("/messages/:chatId", verifyToken, async (req, res) => {
   const { chatId } = req.params;
-  console.log("Yes");
 
   try {
     const cacheKey = `chat:${chatId}:recentMessages`;

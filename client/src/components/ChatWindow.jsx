@@ -22,12 +22,12 @@ const ChatWindow = ({
           <div
             key={msg._id}
             className={`mb-2 ${
-              msg.senderId === currentUserId ? "text-right" : "text-left"
+              msg.sender === currentUserId ? "text-right" : "text-left"
             }`}
           >
             <span
               className={`inline-block p-2 rounded-lg ${
-                msg.senderId === currentUserId
+                msg.sender === currentUserId
                   ? "bg-blue-500 text-white"
                   : "bg-gray-200"
               }`}
@@ -37,6 +37,8 @@ const ChatWindow = ({
           </div>
         ))}
       </div>
+
+      
       <div className="p-4 border-t border-gray-300">
         <input
           type="text"

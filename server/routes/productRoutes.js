@@ -9,8 +9,6 @@ const User = require("../models/userModel");
 const auth = require("../middleware/auth");
 const upload = multer({ storage: multer.memoryStorage() }); // Store in memory for Cloudinary upload
 
-// Middleware to check for authentication
-router.use(verifyToken);
 
 // Handle fetching products
 router.get("/products", verifyToken, async (req, res) => {

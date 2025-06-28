@@ -3,17 +3,15 @@ const router = express.Router();
 const Product = require("../models/productModel");
 const cloudinary = require("../config/cloudinary");
 const redisClient = require("../utils/redisClient"); // Import Redis client
-const { verifyToken, verifyAdmin } = require("../middleware/auth");
+const { verifyAdmin } = require("../middleware/auth");
 
-// Middleware to check if the user is an admin
-router.use(verifyToken);
-router.use(verifyAdmin);
+
 
 // Cache key for unapproved products
 const UNAPPROVED_PRODUCTS_CACHE_KEY = "unapproved_products";
 
 // Get all unapproved products
-router.get("/admin/products", async (req, res) => {
+router.get("/products", verifyAdmin, async (req, res) => {
   try {
     // Check if data is cached
     const cachedProducts = await redisClient.get(UNAPPROVED_PRODUCTS_CACHE_KEY);
@@ -49,7 +47,7 @@ router.get("/admin/products", async (req, res) => {
 });
 
 // Approve a product
-router.post("/admin/products/:id/approve", async (req, res) => {
+router.post("/products/:id/approve", verifyAdmin, async (req, res) => {
   try {
     const productId = req.params.id;
 
@@ -81,7 +79,7 @@ router.post("/admin/products/:id/approve", async (req, res) => {
 });
 
 // Deny (delete) a product
-router.delete("/admin/products/:id/deny", async (req, res) => {
+router.delete("/products/:id/deny", verifyAdmin, async (req, res) => {
   try {
     const productId = req.params.id;
 

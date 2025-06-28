@@ -92,11 +92,13 @@ router.post("/login", async (req, res) => {
     if (isPasswordValid) {
       const token = jwt.sign(
         {
-          name: user.username,
-          email: user.email,
+          _id: user._id, // User's unique ID
+          name: user.username, // User's username
+          email: user.email, // User's email
+          isAdmin: user.isAdmin, // User's role
         },
-        process.env.JWT_SECRET
-        // { expiresIn: "1h" } // Optional: Set token expiry
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" } // Optional: Set token expiry to 1 day
       );
       return res.json({ status: "ok", token });
     } else {

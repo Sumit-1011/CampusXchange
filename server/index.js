@@ -47,9 +47,9 @@ const adminRoutes = require("./routes/adminRoutes");
 const otpRoutes = require("./routes/otpRoutes");
 const chatRoutes = require("./routes/chat");
 
-app.use("/api", userRoutes);
+app.use("/api", userRoutes); //handler
 app.use("/api", productRoutes);
-app.use("/api", adminRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/chat", chatRoutes);
 
