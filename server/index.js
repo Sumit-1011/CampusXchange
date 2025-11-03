@@ -151,24 +151,26 @@ app.get("/cache", async (req, res) => {
 
 async function startServer() {
   try {
+    console.log("🚀 Starting CampusXchange backend...");
     console.log("Connecting to MongoDB...");
     await connectToMongoDB();
-    console.log("✅ MongoDB connected successfully.");
+    console.log("✅ MongoDB connected.");
 
-    // Optional: ping Redis to confirm
-    await redisClient.ping();
-    console.log("✅ Redis connected successfully.");
+    // Redis check
+    try {
+      await redisClient.ping();
+      console.log("✅ Redis connected.");
+    } catch (err) {
+      console.warn("⚠️ Redis connection failed:", err.message);
+    }
 
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`✅ Server is listening on port ${PORT}`);
     });
   } catch (error) {
-    console.error("❌ Failed during startup:", error);
+    console.error("❌ Startup failed:", error);
     process.exit(1);
   }
 }
-
-startServer();
-
 
 startServer();
