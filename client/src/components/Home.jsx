@@ -137,8 +137,8 @@ const Home = () => {
 
       if (response.data.status === "ok") {
         const chat = response.data.chat;
-        console.log("Chat started or retrieved:", chat);
-        console.log("Navigating to chat:", `/chat/${chat._id}`);
+        //console.log("Chat started or retrieved:", chat);
+        //console.log("Navigating to chat:", `/chat/${chat._id}`);
         navigate(`/chat/${chat._id}`, {
           state: { chatId: chat._id, contactId: user2Id },
         });

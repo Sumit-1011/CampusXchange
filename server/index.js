@@ -80,7 +80,7 @@ const checkRateLimit = async (userId) => {
 
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
-  console.log("Connected user ID (type):", userId, typeof userId);
+  //console.log("Connected user ID (type):", userId, typeof userId);
 
   // Join a specific chat room between buyer and seller
   socket.on("joinChat", ({ chatId, userId }) => {
@@ -89,13 +89,14 @@ io.on("connection", (socket) => {
       return;
     }
     socket.join(chatId);
-    console.log(`User ${userId} joined chat ${chatId}`);
+    //console.log(`User ${userId} joined chat ${chatId}`);
   });
 
   // Handle sending a message
   socket.on("sendMessage", async ({ chatId, senderId, text }) => {
     try {
       const canSendMessage = await checkRateLimit(senderId);
+      console.log(text);
 
       if (!canSendMessage) {
         io.to(socket.id).emit(
@@ -123,14 +124,15 @@ io.on("connection", (socket) => {
 
       const cacheKey = `chat:${chatId}:recentMessages`;
       await redisClient.lPush(cacheKey, JSON.stringify(message)); // Correct method for modern redis
-      await redisClient.lTrim(cacheKey, 0, 9); // Correct method for modern redis
+      await redisClient.lTrim(cacheKey, -50, -1); // Correct method for modern redis
+      await redisClient.expire(cacheKey, 3600);
     } catch (error) {
       console.error("Error sending message:", error);
     }
   });
 
   socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
+    //console.log("Client disconnected:", socket.id);
   });
 });
 

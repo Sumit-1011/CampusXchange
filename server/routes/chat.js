@@ -18,10 +18,6 @@ router.post("/start-chat", verifyToken, async (req, res) => {
       user2Id = String(user2Id.userId._id);
     }
 
-    // Log the input IDs for debugging
-    console.log("User1 ID:", user1Id);
-    console.log("User2 ID:", user2Id);
-
     // Validate IDs
     if (!user1Id || !user2Id) {
       return res.status(400).json({
@@ -73,7 +69,7 @@ router.get("/messages/:chatId", verifyToken, async (req, res) => {
     const cacheKey = `chat:${chatId}:recentMessages`;
 
     // Check for messages in Redis cache
-    const cachedMessages = await redisClient.lRange(cacheKey, 0, 9);
+    const cachedMessages = await redisClient.lRange(cacheKey, 0, -1);
 
     if (cachedMessages && cachedMessages.length > 0) {
       return res.status(200).json({
@@ -85,7 +81,7 @@ router.get("/messages/:chatId", verifyToken, async (req, res) => {
 
     // Fetch messages from MongoDB if not found in cache
     const messages = await Message.find({ chatId })
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: 1 })
       .limit(10);
 
     // Return an empty array if no messages are found
@@ -97,12 +93,13 @@ router.get("/messages/:chatId", verifyToken, async (req, res) => {
       });
     }
 
-    // Cache the fetched messages in Redis
-    await redisClient.lPush(
-      cacheKey,
-      ...messages.map((msg) => JSON.stringify(msg))
-    );
-    await redisClient.expire(cacheKey, 3600);
+    if (messages.length > 0) {
+      await redisClient.rPush( // ✅ Use rPush instead of lPush
+        cacheKey,
+        ...messages.map((msg) => JSON.stringify(msg))
+      );
+      await redisClient.expire(cacheKey, 3600);
+    }
 
     return res.status(200).json({
       status: "ok",

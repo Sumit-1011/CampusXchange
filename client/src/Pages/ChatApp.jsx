@@ -23,7 +23,7 @@ const ChatApp = () => {
   const handleSendMessage = useCallback(
     (text) => {
       if (selectedContact && currentUserId) {
-        sendMessage(selectedContact.chatId, currentUserId, text);
+        sendMessage(text);
       }
     },
     [sendMessage, selectedContact, currentUserId]

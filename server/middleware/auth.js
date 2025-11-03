@@ -32,7 +32,7 @@ const verifyToken = async (req, res, next) => {
     }
 
     req.user = { _id: user._id, email: user.email, isAdmin: user.isAdmin }; // Attach minimal user info
-    console.log("Authenticated user:", req.user);
+    //console.log("Authenticated user:", req.user);
     next();
   } catch (error) {
     console.error("Token verification error:", error);

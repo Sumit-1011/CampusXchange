@@ -346,6 +346,7 @@ const Profile = () => {
 
             {/* Bottom 2/3rd with product listing */}
             <div className="h-2/3 mt-4 overflow-y-auto">
+              {console.log("Rendering liked products:", likedProducts)}
               {likedProducts && likedProducts.length > 0 ? (
                 <UserProduct
                   products={likedProducts} // Pass the array of liked products

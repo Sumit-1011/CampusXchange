@@ -123,10 +123,6 @@ const UserProducts = ({
       product?.postedBy?._id ||
       product?.postedBy; // Seller or other user
 
-    // Debugging logs for validation
-    console.log("User1 ID:", user1Id);
-    console.log("User2 ID:", user2Id);
-
     // Validate both user IDs before calling onStartChat
     if (user1Id && user2Id) {
       try {
@@ -146,11 +142,11 @@ const UserProducts = ({
             headers: { Authorization: `Bearer ${token}` }, // Include token in Authorization header
           }
         );
-        console.log("Response from /start-chat:", response.data);
+        //console.log("Response from /start-chat:", response.data);
 
         if (response.data.status === "ok") {
           const chatId = response.data.chat._id; // Extract chat ID
-          console.log("Navigating to chat:", chatId);
+          //console.log("Navigating to chat:", chatId);
           navigate(`/chat/${chatId}`, {
             state: { contact: response.data.chat },
           }); // Navigate to chat page using chat ID
