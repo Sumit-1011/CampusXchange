@@ -8,7 +8,7 @@ const useChatSocket = ({ userId, onMessageReceived, onRateLimitExceeded }) => {
   useEffect(() => {
     if (!userId || socketRef.current) return;
 
-    const newSocket = io("http://localhost:5000", { query: { userId } });
+    const newSocket = io("http://localhost:8080", { query: { userId } });
     socketRef.current = newSocket;
 
     newSocket.on("receiveMessage", (message) => {

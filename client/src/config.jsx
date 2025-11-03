@@ -3,7 +3,7 @@ const config = {
   apiBaseUrl:
     import.meta.env.VITE_API_URL ??
     (import.meta.env.MODE === "development"
-      ? "http://localhost:5000"
+      ? "http://localhost:8080"
       : "https://campusxchange-server.onrender.com"),
 };
 
