@@ -53,6 +53,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/chat", chatRoutes);
 
+app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+
 // Redis Error Handling
 redisClient.on("error", (err) => {
   console.error("Redis client error:", err);
