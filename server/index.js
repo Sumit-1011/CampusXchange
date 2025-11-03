@@ -151,14 +151,24 @@ app.get("/cache", async (req, res) => {
 
 async function startServer() {
   try {
+    console.log("Connecting to MongoDB...");
     await connectToMongoDB();
-    server.listen(PORT, () => {
-      console.log(`Server is listening on port ${PORT}`);
+    console.log("✅ MongoDB connected successfully.");
+
+    // Optional: ping Redis to confirm
+    await redisClient.ping();
+    console.log("✅ Redis connected successfully.");
+
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`✅ Server is listening on port ${PORT}`);
     });
   } catch (error) {
-    console.error("Failed to connect to MongoDB", error);
-    process.exit(1); // Exit the process with failure code
+    console.error("❌ Failed during startup:", error);
+    process.exit(1);
   }
 }
+
+startServer();
+
 
 startServer();
